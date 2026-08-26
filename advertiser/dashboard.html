@@ -200,6 +200,7 @@
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     let allData = [];
+    let rawData = []; // semua data termasuk yang superseded, untuk riwayat
     let currentFilter = 'all';
     let currentPage = 1;
     const PER_PAGE = 10;
@@ -222,10 +223,10 @@
 
       if (error) { document.getElementById('submissionList').innerHTML = '<div class="empty">Gagal memuat data.</div>'; return; }
 
-      allData = data || [];
+      rawData = data || [];
       // Sembunyikan submission yang sudah di-revisi (cuma tampilkan versi terbaru)
-      const revisedIds = new Set(allData.map(d => d.revision_of).filter(Boolean));
-      allData = allData.filter(d => !revisedIds.has(d.id));
+      const revisedIds = new Set(rawData.map(d => d.revision_of).filter(Boolean));
+      allData = rawData.filter(d => !revisedIds.has(d.id));
       updateStats();
       renderNotif();
       loadProdukFilter();
@@ -372,9 +373,19 @@
       return new Date(str).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
     }
 
+    function getRevisionChain(d) {
+      // Cari root ID
+      const rootId = d.revision_of
+        ? (rawData.find(x => x.id === d.revision_of)?.revision_of || d.revision_of)
+        : d.id;
+      // Kumpulkan semua dalam chain ini
+      return rawData
+        .filter(x => x.id === rootId || x.revision_of === rootId || x.id === d.id)
+        .sort((a, b) => a.revision_number - b.revision_number);
+    }
+
     function renderCard(d) {
-      const revisionInfo = d.revision_of
-        ? `<div class="revision-chain"><strong>Revisi ${d.revision_number}</strong> dari submisi sebelumnya</div>` : '';
+      const chain = getRevisionChain(d);
       const catatanQA = d.qa_catatan && d.status === 'rejected'
         ? `<div class="catatan-qa"><strong>Catatan QA</strong>${d.qa_catatan}</div>` : '';
       const approvedInfo = d.status === 'approved'
@@ -385,11 +396,26 @@
            <button onclick="openPreview('${d.drive_link}','${d.judul.replace(/'/g,"\\'")}','${meta}')" class="btn-sm outline">▶ Preview Konten</button>`
         : `<button onclick="openPreview('${d.drive_link}','${d.judul.replace(/'/g,"\\'")}','${meta}')" class="btn-sm outline">▶ Preview Konten</button>`;
 
+      const statusColor = { pending: '#d97706', approved: '#16a34a', rejected: '#dc2626' };
+      const statusLabel = { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' };
+      const revisionHtml = chain.length > 1 ? `
+        <div class="revision-chain">
+          <strong style="display:block;margin-bottom:6px;">Riwayat Revisi</strong>
+          ${chain.map(r => `
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #e5e3f5;font-size:12px;">
+              <span style="min-width:60px;font-weight:700;color:#4f46e5;">Revisi ${r.revision_number}</span>
+              <span style="flex:1;color:#374151;">${r.judul}</span>
+              <span style="font-weight:700;color:${statusColor[r.status] || '#9ca3af'};">${statusLabel[r.status] || r.status}</span>
+              <button onclick="openPreview('${r.drive_link}','${r.judul.replace(/'/g,"\\'")}','Revisi ${r.revision_number}')" style="background:#f5f4fb;border:none;color:#4f46e5;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;cursor:pointer;">▶</button>
+              ${r.qa_catatan ? `<span title="${r.qa_catatan}" style="color:#9ca3af;cursor:help;font-size:12px;">💬</span>` : ''}
+            </div>`).join('')}
+        </div>` : '';
+
       return `
         <div class="submission-card ${d.status}">
           <div class="card-top">
             <div>
-              <div class="card-judul">${d.judul}</div>
+              <div class="card-judul">${d.judul}${d.revision_of ? ` <span style="font-size:11px;font-weight:700;color:#6d28d9;background:#ede9fe;padding:2px 8px;border-radius:10px;margin-left:6px;">Revisi ${d.revision_number}</span>` : ''}</div>
               <div class="card-brand">${d.brand} · ${d.jenis_konten}</div>
             </div>
             <span class="badge ${d.status}">${badgeLabel(d.status)}</span>
@@ -399,7 +425,7 @@
             ${d.qa_at ? `<span>🔍 Direview: ${formatDate(d.qa_at)}</span>` : ''}
             ${d.qa_by ? `<span>👤 QA: ${d.qa_by}</span>` : ''}
           </div>
-          ${revisionInfo}
+          ${revisionHtml}
           ${catatanQA}
           ${approvedInfo}
           <div class="card-actions">${actions}</div>
