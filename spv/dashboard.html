@@ -78,6 +78,14 @@
     .empty { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
     .loading { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
     .hint { font-size: 13px; color: #9ca3af; text-align: center; padding: 20px; }
+
+    /* Pagination */
+    .pagination { display: flex; align-items: center; gap: 6px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+    .pg-btn { padding: 7px 13px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; background: #f5f4fb; color: #4f46e5; transition: all 0.15s; }
+    .pg-btn:hover:not(:disabled) { background: #ede9fe; }
+    .pg-btn.active { background: #4f46e5; color: #fff; }
+    .pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pg-info { font-size: 12px; color: #9ca3af; margin-left: 8px; }
   </style>
 </head>
 <body>
@@ -147,11 +155,29 @@
             <th>Status</th>
             <th>Tanggal</th>
             <th>Catatan QA</th>
-            <th>Link</th>
+            <th>Preview</th>
           </tr>
         </thead>
         <tbody id="detailBody"></tbody>
       </table>
+      <div class="pagination" id="detailPagination"></div>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
+  <div class="modal-overlay" id="previewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:640px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#1e1e2e;" id="previewTitle">—</div>
+          <div style="font-size:12px;color:#9ca3af;margin-top:3px;" id="previewMeta">—</div>
+        </div>
+        <button onclick="closePreview()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#9ca3af;">✕</button>
+      </div>
+      <div style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;margin-bottom:16px;">
+        <iframe id="previewIframe" src="" allowfullscreen allow="autoplay" style="width:100%;height:100%;border:none;"></iframe>
+      </div>
+      <a id="previewDriveLink" href="#" target="_blank" style="width:100%;padding:12px;background:#f5f4fb;color:#4f46e5;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;display:block;text-align:center;">🔗 Buka di Google Drive</a>
     </div>
   </div>
 
@@ -163,6 +189,8 @@
     let allData = [];
     let filteredData = [];
     let selectedAdv = null;
+    let currentDetailPage = 1;
+    const DETAIL_PER_PAGE = 10;
 
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session || data.session.user.user_metadata?.role !== 'spv') {
@@ -267,11 +295,42 @@
       }).join('');
     }
 
+    function extractFileId(url) {
+      const match = url?.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : null;
+    }
+
+    window.openPreview = function(driveLink, judul, meta) {
+      const fileId = extractFileId(driveLink);
+      const modal = document.getElementById('previewModal');
+      document.getElementById('previewTitle').textContent = judul;
+      document.getElementById('previewMeta').textContent = meta;
+      document.getElementById('previewDriveLink').href = driveLink;
+      document.getElementById('previewIframe').src = fileId
+        ? `https://drive.google.com/file/d/${fileId}/preview?autoplay=1` : driveLink;
+      modal.style.display = 'flex';
+    };
+
+    window.closePreview = function() {
+      document.getElementById('previewModal').style.display = 'none';
+      document.getElementById('previewIframe').src = '';
+    };
+
+    document.getElementById('previewModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('previewModal')) closePreview();
+    });
+
     window.selectAdv = function(name) {
       selectedAdv = selectedAdv === name ? null : name;
+      currentDetailPage = 1;
       renderAdvGrid();
       if (selectedAdv) renderDetail(selectedAdv);
       else document.getElementById('detailSection').style.display = 'none';
+    };
+
+    window.goDetailPage = function(p) {
+      currentDetailPage = p;
+      renderDetail(selectedAdv);
     };
 
     function renderDetail(name) {
@@ -283,6 +342,11 @@
       title.textContent = `Detail Submission — ${name} (${items.length} konten)`;
       section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
+      const totalPages = Math.ceil(items.length / DETAIL_PER_PAGE);
+      if (currentDetailPage > totalPages) currentDetailPage = totalPages || 1;
+      const start = (currentDetailPage - 1) * DETAIL_PER_PAGE;
+      const pageItems = items.slice(start, start + DETAIL_PER_PAGE);
+
       function badgeLabel(s) {
         return { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' }[s] || s;
       }
@@ -291,7 +355,7 @@
         return new Date(str).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
       }
 
-      body.innerHTML = items.map(d => `
+      body.innerHTML = pageItems.map(d => `
         <tr>
           <td>${d.judul}${d.revision_of ? '<span class="rev-tag">Revisi ' + d.revision_number + '</span>' : ''}</td>
           <td>${d.brand}</td>
@@ -299,8 +363,23 @@
           <td><span class="badge ${d.status}">${badgeLabel(d.status)}</span></td>
           <td>${formatDate(d.submitted_at)}</td>
           <td style="max-width:180px;color:#6b7280">${d.qa_catatan || '-'}</td>
-          <td><a class="link-drive" href="${d.drive_link}" target="_blank">Lihat →</a></td>
+          <td><button onclick="openPreview('${d.drive_link}','${(d.judul||'').replace(/'/g,"\\'")}','${d.brand} · ${d.jenis_konten}')" style="background:#f5f4fb;border:none;color:#4f46e5;font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;">▶ Preview</button></td>
         </tr>`).join('');
+
+      // Render pagination
+      const pg = document.getElementById('detailPagination');
+      if (totalPages <= 1) { pg.innerHTML = ''; return; }
+      let html = `<button class="pg-btn" onclick="goDetailPage(${currentDetailPage - 1})" ${currentDetailPage === 1 ? 'disabled' : ''}>← Prev</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentDetailPage) > 1) {
+          if (i === 3 || i === totalPages - 2) html += `<span style="color:#9ca3af;padding:0 2px;">...</span>`;
+          continue;
+        }
+        html += `<button class="pg-btn ${i === currentDetailPage ? 'active' : ''}" onclick="goDetailPage(${i})" ${i === currentDetailPage ? 'disabled' : ''}>${i}</button>`;
+      }
+      html += `<button class="pg-btn" onclick="goDetailPage(${currentDetailPage + 1})" ${currentDetailPage === totalPages ? 'disabled' : ''}>Next →</button>`;
+      html += `<span class="pg-info">${items.length} konten</span>`;
+      pg.innerHTML = html;
     }
 
     window.doLogout = async function() {

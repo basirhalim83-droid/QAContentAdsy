@@ -23,7 +23,9 @@
 
     /* Stats */
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 28px; }
-    .stat-card { background: #fff; border-radius: 14px; padding: 18px; text-align: center; box-shadow: 0 2px 12px rgba(80,70,160,0.07); }
+    .stat-card { background: #fff; border-radius: 14px; padding: 18px; text-align: center; box-shadow: 0 2px 12px rgba(80,70,160,0.07); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(80,70,160,0.13); }
+    .stat-card.active-filter { outline: 2.5px solid #4f46e5; }
     .stat-num { font-size: 26px; font-weight: 800; color: #1e1e2e; }
     .stat-label { font-size: 11px; color: #9ca3af; margin-top: 4px; font-weight: 500; }
     .stat-pct { font-size: 12px; font-weight: 700; margin-top: 4px; color: #9ca3af; }
@@ -35,47 +37,34 @@
     .filter-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
 
     /* Cards */
-    .submissions { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; }
-    .submission-card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 2px 12px rgba(80,70,160,0.07); border-left: 4px solid #e5e3f5; }
+    .submissions { display: flex; flex-direction: column; gap: 10px; }
+    .submission-card { background: #fff; border-radius: 14px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(80,70,160,0.06); border-left: 4px solid #e5e3f5; display: flex; gap: 12px; align-items: flex-start; }
     .submission-card.pending { border-left-color: #d97706; }
-    .submission-card.in_review { border-left-color: #4f46e5; }
     .submission-card.approved { border-left-color: #16a34a; }
-    .submission-card.approved_iklan { border-left-color: #0891b2; }
     .submission-card.rejected { border-left-color: #dc2626; }
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-    .card-judul { font-size: 15px; font-weight: 700; color: #1e1e2e; }
-    .card-brand { font-size: 12px; color: #9ca3af; margin-top: 2px; }
-    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-    .badge.pending { background: #fffbeb; color: #d97706; }
-    .badge.in_review { background: #ede9fe; color: #4f46e5; }
-    .badge.approved { background: #f0fdf4; color: #16a34a; }
-    .badge.approved_iklan { background: #ecfeff; color: #0891b2; }
-    .badge.rejected { background: #fef2f2; color: #dc2626; }
-    .card-meta { display: flex; gap: 14px; font-size: 12px; color: #9ca3af; flex-wrap: wrap; margin-bottom: 12px; }
-    .drive-preview { display: block; background: #f5f4fb; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #4f46e5; text-decoration: none; font-weight: 600; margin-bottom: 12px; }
-    .drive-preview:hover { background: #eceaf8; }
-
-    /* Thumbnail preview */
-    .thumb-wrap {
-      width: 100%; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden;
-      background: #f0eef8; margin-bottom: 12px; cursor: pointer; position: relative;
+    .card-thumb {
+      width: 120px; min-width: 120px; aspect-ratio: 16/9; border-radius: 8px;
+      overflow: hidden; background: #f0eef8; cursor: pointer; position: relative; flex-shrink: 0;
     }
-    .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .thumb-overlay {
       position: absolute; inset: 0; background: rgba(0,0,0,0.3);
       display: flex; align-items: center; justify-content: center;
       opacity: 0; transition: opacity 0.2s;
     }
-    .thumb-wrap:hover .thumb-overlay { opacity: 1; }
-    .play-btn {
-      width: 52px; height: 52px; background: rgba(255,255,255,0.92);
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 20px; padding-left: 4px;
-    }
-    .thumb-placeholder {
-      width: 100%; height: 100%; display: flex; align-items: center;
-      justify-content: center; font-size: 40px; background: #f0eef8;
-    }
+    .card-thumb:hover .thumb-overlay { opacity: 1; }
+    .play-btn { width: 32px; height: 32px; background: rgba(255,255,255,0.92); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; padding-left: 3px; }
+    .thumb-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .card-body { flex: 1; min-width: 0; }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; gap: 8px; }
+    .card-judul { font-size: 13px; font-weight: 700; color: #1e1e2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-brand { font-size: 11px; color: #9ca3af; margin-bottom: 6px; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .badge.pending { background: #fffbeb; color: #d97706; }
+    .badge.approved { background: #f0fdf4; color: #16a34a; }
+    .badge.rejected { background: #fef2f2; color: #dc2626; }
+    .card-meta { display: flex; gap: 10px; font-size: 11px; color: #9ca3af; flex-wrap: wrap; margin-bottom: 8px; }
+    .drive-preview { display: none; }
 
     /* Modal Preview */
     .modal-overlay {
@@ -120,6 +109,12 @@
 
     .empty { text-align: center; padding: 60px; color: #9ca3af; font-size: 14px; }
     .loading { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 20px; flex-wrap: wrap; }
+    .pg-btn { padding: 7px 13px; border-radius: 8px; border: 1.5px solid #e5e3f5; background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; color: #6b7280; transition: all 0.2s; }
+    .pg-btn:hover { border-color: #4f46e5; color: #4f46e5; }
+    .pg-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; cursor: default; }
+    .pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pg-info { font-size: 12px; color: #9ca3af; margin-left: 8px; }
   </style>
 </head>
 <body>
@@ -136,10 +131,10 @@
     <p class="page-sub">Review konten yang disubmit advertiser.</p>
 
     <div class="stats">
-      <div class="stat-card pending"><div class="stat-num" id="statPending">-</div><div class="stat-label">Pending</div><div class="stat-pct" id="pctPending">-</div></div>
-      <div class="stat-card"><div class="stat-num" id="statApproved">-</div><div class="stat-label">Approved</div><div class="stat-pct" id="pctApproved" style="color:#16a34a">-</div></div>
-      <div class="stat-card"><div class="stat-num" id="statRejected">-</div><div class="stat-label">Rejected</div><div class="stat-pct" id="pctRejected" style="color:#dc2626">-</div></div>
-      <div class="stat-card"><div class="stat-num" id="statDone">-</div><div class="stat-label">Total Direview</div><div class="stat-pct" id="pctDone">-</div></div>
+      <div class="stat-card pending" onclick="setFilterFromCard('pending', this)"><div class="stat-num" id="statPending">-</div><div class="stat-label">Pending</div><div class="stat-pct" id="pctPending">-</div></div>
+      <div class="stat-card" onclick="setFilterFromCard('approved', this)"><div class="stat-num" id="statApproved">-</div><div class="stat-label">Approved</div><div class="stat-pct" id="pctApproved" style="color:#16a34a">-</div></div>
+      <div class="stat-card" onclick="setFilterFromCard('rejected', this)"><div class="stat-num" id="statRejected">-</div><div class="stat-label">Rejected</div><div class="stat-pct" id="pctRejected" style="color:#dc2626">-</div></div>
+      <div class="stat-card" onclick="setFilterFromCard('all', this)"><div class="stat-num" id="statDone">-</div><div class="stat-label">Total Direview</div><div class="stat-pct" id="pctDone">-</div></div>
     </div>
 
     <div class="filter-row">
@@ -147,11 +142,15 @@
       <button class="filter-btn" onclick="setFilter('approved', this)">Approved</button>
       <button class="filter-btn" onclick="setFilter('rejected', this)">Rejected</button>
       <button class="filter-btn" onclick="setFilter('all', this)">Semua</button>
+      <select id="filterBulan" onchange="window.applyFilter()" style="padding:7px 14px;border-radius:20px;border:1.5px solid #e5e3f5;background:#fff;font-size:12px;font-weight:600;color:#6b7280;outline:none;cursor:pointer;font-family:inherit;">
+        <option value="">Semua Bulan</option>
+      </select>
     </div>
 
     <div class="submissions" id="submissionList">
       <div class="loading">Memuat data...</div>
     </div>
+    <div class="pagination" id="pagination"></div>
   </div>
 
   <!-- Preview Modal -->
@@ -179,6 +178,8 @@
     let allData = [];
     let currentFilter = 'pending';
     let qaName = '';
+    let currentPage = 1;
+    const PER_PAGE = 10;
 
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session || data.session.user.user_metadata?.role !== 'qa') {
@@ -196,8 +197,22 @@
         .order('submitted_at', { ascending: true });
       allData = data || [];
       updateStats();
+      populateBulanFilter();
       renderList();
     }
+
+    function populateBulanFilter() {
+      const months = [...new Set(allData.map(d => d.submitted_at?.slice(0, 7)))].filter(Boolean).sort().reverse();
+      const sel = document.getElementById('filterBulan');
+      sel.innerHTML = '<option value="">Semua Bulan</option>';
+      months.forEach(m => {
+        const [y, mo] = m.split('-');
+        const label = new Date(y, mo - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        sel.innerHTML += `<option value="${m}">${label}</option>`;
+      });
+    }
+
+    window.applyFilter = function() { renderList(); };
 
     function pct(num, total) {
       if (!total) return '0%';
@@ -222,18 +237,61 @@
       document.getElementById('pctDone').textContent = total + ' total';
     }
 
-    window.setFilter = function(filter, el) {
+    function applyFilterState(filter) {
       currentFilter = filter;
+      currentPage = 1;
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      el.classList.add('active');
+      document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
       renderList();
+    }
+
+    window.setFilter = function(filter, el) {
+      applyFilterState(filter);
+      el.classList.add('active');
+    };
+
+    window.setFilterFromCard = function(filter, card) {
+      applyFilterState(filter);
+      card.classList.add('active-filter');
+    };
+
+    window.goPage = function(p) {
+      currentPage = p;
+      renderList();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     function renderList() {
+      const bulan = document.getElementById('filterBulan').value;
       let filtered = currentFilter === 'all' ? allData : allData.filter(d => d.status === currentFilter);
+      if (bulan) filtered = filtered.filter(d => d.submitted_at?.startsWith(bulan));
+
+      const total = filtered.length;
+      const totalPages = Math.ceil(total / PER_PAGE);
+      if (currentPage > totalPages) currentPage = 1;
+      const start = (currentPage - 1) * PER_PAGE;
+      const paged = filtered.slice(start, start + PER_PAGE);
+
       const container = document.getElementById('submissionList');
-      if (filtered.length === 0) { container.innerHTML = '<div class="empty">Tidak ada data di kategori ini.</div>'; return; }
-      container.innerHTML = filtered.map(d => renderCard(d)).join('');
+      if (total === 0) { container.innerHTML = '<div class="empty">Tidak ada data di kategori ini.</div>'; document.getElementById('pagination').innerHTML = ''; return; }
+      container.innerHTML = paged.map(d => renderCard(d)).join('');
+      renderPagination(totalPages, total);
+    }
+
+    function renderPagination(totalPages, total) {
+      const pg = document.getElementById('pagination');
+      if (totalPages <= 1) { pg.innerHTML = ''; return; }
+      let html = `<button class="pg-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>← Prev</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+          if (i === 3 || i === totalPages - 2) html += `<span style="color:#9ca3af;padding:0 2px;">...</span>`;
+          continue;
+        }
+        html += `<button class="pg-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})" ${i === currentPage ? 'disabled' : ''}>${i}</button>`;
+      }
+      html += `<button class="pg-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next →</button>`;
+      html += `<span class="pg-info">${total} submission</span>`;
+      pg.innerHTML = html;
     }
 
     function badgeLabel(s) {
@@ -282,7 +340,7 @@
       const metaStr = `${d.brand} · ${d.jenis_konten} · ${d.advertiser_name}`;
 
       const thumbHtml = `
-        <div class="thumb-wrap" onclick="openPreview('${d.drive_link}', '${d.judul.replace(/'/g,"\\'")}', '${metaStr.replace(/'/g,"\\'")}')">
+        <div class="card-thumb" onclick="openPreview('${d.drive_link}', '${d.judul.replace(/'/g,"\\'")}', '${metaStr.replace(/'/g,"\\'")}')">
           ${thumbSrc
             ? `<img src="${thumbSrc}" alt="${d.judul}" onerror="this.parentElement.innerHTML='<div class=\\'thumb-placeholder\\'>📁</div>'" />`
             : `<div class="thumb-placeholder">📁</div>`}
@@ -318,20 +376,20 @@
 
       return `
         <div class="submission-card ${d.status}" id="card-${d.id}">
-          <div class="card-top">
-            <div>
-              <div class="card-judul">${d.judul}</div>
-              <div class="card-brand">${d.brand} · ${d.jenis_konten}</div>
-            </div>
-            <span class="badge ${d.status}">${badgeLabel(d.status)}</span>
-          </div>
-          <div class="card-meta">
-            <span>👤 ${d.advertiser_name}</span>
-            <span>📅 ${formatDate(d.submitted_at)}</span>
-          </div>
           ${thumbHtml}
-          ${revisionHtml}
-          ${reviewBox}
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-judul">${d.judul}</div>
+              <span class="badge ${d.status}">${badgeLabel(d.status)}</span>
+            </div>
+            <div class="card-brand">${d.brand} · ${d.jenis_konten}</div>
+            <div class="card-meta">
+              <span>👤 ${d.advertiser_name}</span>
+              <span>📅 ${formatDate(d.submitted_at)}</span>
+            </div>
+            ${revisionHtml}
+            ${reviewBox}
+          </div>
         </div>`;
     }
 

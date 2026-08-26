@@ -26,7 +26,9 @@
 
     /* Stats */
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
-    .stat-card { background: #fff; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 2px 12px rgba(80,70,160,0.07); }
+    .stat-card { background: #fff; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 2px 12px rgba(80,70,160,0.07); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(80,70,160,0.13); }
+    .stat-card.active-filter { outline: 2.5px solid #4f46e5; }
     .stat-num { font-size: 28px; font-weight: 800; color: #1e1e2e; }
     .stat-label { font-size: 12px; color: #9ca3af; margin-top: 4px; font-weight: 500; }
     .stat-pct { font-size: 12px; font-weight: 700; margin-top: 4px; }
@@ -79,6 +81,26 @@
 
     .empty { text-align: center; padding: 60px 20px; color: #9ca3af; font-size: 14px; }
     .loading { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 20px; flex-wrap: wrap; }
+    .pg-btn { padding: 7px 13px; border-radius: 8px; border: 1.5px solid #e5e3f5; background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; color: #6b7280; transition: all 0.2s; }
+    .pg-btn:hover { border-color: #4f46e5; color: #4f46e5; }
+    .pg-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; cursor: default; }
+    .pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pg-info { font-size: 12px; color: #9ca3af; margin-left: 8px; }
+
+    /* Modal Preview */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: #fff; border-radius: 20px; padding: 24px; width: 100%; max-width: 640px; margin: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .modal-title { font-size: 16px; font-weight: 700; color: #1e1e2e; }
+    .modal-meta { font-size: 12px; color: #9ca3af; margin-top: 3px; }
+    .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #9ca3af; line-height: 1; }
+    .modal-close:hover { color: #dc2626; }
+    .preview-iframe-wrap { width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 16px; }
+    .preview-iframe-wrap iframe { width: 100%; height: 100%; border: none; }
+    .btn-open-drive { width: 100%; padding: 12px; background: #f5f4fb; color: #4f46e5; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: block; text-align: center; }
+    .btn-open-drive:hover { background: #eceaf8; }
 
     @media (max-width: 600px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
@@ -106,22 +128,22 @@
 
     <!-- Stats -->
     <div class="stats">
-      <div class="stat-card">
+      <div class="stat-card" onclick="setFilterFromCard('all', this)">
         <div class="stat-num" id="statTotal">-</div>
         <div class="stat-label">Total Submit</div>
         <div class="stat-pct" id="pctTotal" style="color:#9ca3af">100%</div>
       </div>
-      <div class="stat-card pending">
+      <div class="stat-card pending" onclick="setFilterFromCard('pending', this)">
         <div class="stat-num" id="statPending">-</div>
         <div class="stat-label">Pending</div>
         <div class="stat-pct" id="pctPending">-</div>
       </div>
-      <div class="stat-card approved">
+      <div class="stat-card approved" onclick="setFilterFromCard('approved', this)">
         <div class="stat-num" id="statApproved">-</div>
         <div class="stat-label">Approved</div>
         <div class="stat-pct" id="pctApproved">-</div>
       </div>
-      <div class="stat-card rejected">
+      <div class="stat-card rejected" onclick="setFilterFromCard('rejected', this)">
         <div class="stat-num" id="statRejected">-</div>
         <div class="stat-label">Rejected</div>
         <div class="stat-pct" id="pctRejected">-</div>
@@ -152,6 +174,24 @@
     <div class="submissions" id="submissionList">
       <div class="loading">Memuat data...</div>
     </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- Preview Modal -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="previewTitle">—</div>
+          <div class="modal-meta" id="previewMeta">—</div>
+        </div>
+        <button class="modal-close" onclick="closePreview()">✕</button>
+      </div>
+      <div class="preview-iframe-wrap">
+        <iframe id="previewIframe" src="" allowfullscreen allow="autoplay"></iframe>
+      </div>
+      <a id="previewDriveLink" href="#" target="_blank" class="btn-open-drive">🔗 Buka di Google Drive</a>
+    </div>
   </div>
 
   <script type="module">
@@ -161,6 +201,8 @@
 
     let allData = [];
     let currentFilter = 'all';
+    let currentPage = 1;
+    const PER_PAGE = 10;
 
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session || data.session.user.user_metadata?.role !== 'advertiser') {
@@ -235,11 +277,28 @@
       }).join('');
     }
 
-    window.setFilter = function(filter, el) {
+    function applyFilterState(filter) {
       currentFilter = filter;
+      currentPage = 1;
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+      window.renderList();
+    }
+
+    window.setFilter = function(filter, el) {
+      applyFilterState(filter);
       el.classList.add('active');
-      renderList();
+    };
+
+    window.setFilterFromCard = function(filter, card) {
+      applyFilterState(filter);
+      card.classList.add('active-filter');
+    };
+
+    window.goPage = function(p) {
+      currentPage = p;
+      window.renderList();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     window.renderList = function renderList() {
@@ -248,13 +307,58 @@
       let filtered = currentFilter === 'all' ? allData : allData.filter(d => d.status === currentFilter);
       if (filterJenis) filtered = filtered.filter(d => d.jenis_konten === filterJenis);
       if (filterProduk) filtered = filtered.filter(d => d.brand === filterProduk);
+
+      const total = filtered.length;
+      const totalPages = Math.ceil(total / PER_PAGE);
+      if (currentPage > totalPages) currentPage = 1;
+      const paged = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
+
       const container = document.getElementById('submissionList');
-      if (filtered.length === 0) {
-        container.innerHTML = '<div class="empty">Belum ada submisi di kategori ini.</div>';
-        return;
+      if (total === 0) { container.innerHTML = '<div class="empty">Belum ada submisi di kategori ini.</div>'; document.getElementById('pagination').innerHTML = ''; return; }
+      container.innerHTML = paged.map(d => renderCard(d)).join('');
+      renderPagination(totalPages, total);
+    };
+
+    function renderPagination(totalPages, total) {
+      const pg = document.getElementById('pagination');
+      if (totalPages <= 1) { pg.innerHTML = ''; return; }
+      let html = `<button class="pg-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>← Prev</button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+          if (i === 3 || i === totalPages - 2) html += `<span style="color:#9ca3af;padding:0 2px;">...</span>`;
+          continue;
+        }
+        html += `<button class="pg-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})" ${i === currentPage ? 'disabled' : ''}>${i}</button>`;
       }
-      container.innerHTML = filtered.map(d => renderCard(d)).join('');
+      html += `<button class="pg-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next →</button>`;
+      html += `<span class="pg-info">${total} submisi</span>`;
+      pg.innerHTML = html;
     }
+
+    function extractFileId(url) {
+      const match = url?.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : null;
+    }
+
+    window.openPreview = function(driveLink, judul, meta) {
+      const fileId = extractFileId(driveLink);
+      document.getElementById('previewTitle').textContent = judul;
+      document.getElementById('previewMeta').textContent = meta;
+      document.getElementById('previewDriveLink').href = driveLink;
+      document.getElementById('previewIframe').src = fileId
+        ? `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`
+        : driveLink;
+      document.getElementById('previewModal').classList.add('show');
+    };
+
+    window.closePreview = function() {
+      document.getElementById('previewModal').classList.remove('show');
+      document.getElementById('previewIframe').src = '';
+    };
+
+    document.getElementById('previewModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('previewModal')) closePreview();
+    });
 
     function badgeLabel(status) {
       return { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' }[status] || status;
@@ -272,10 +376,11 @@
         ? `<div class="catatan-qa"><strong>Catatan QA</strong>${d.qa_catatan}</div>` : '';
       const approvedInfo = d.status === 'approved'
         ? `<div class="approved-info"><strong>✅ Konten Disetujui</strong>Konten telah lolos review QA dan bisa digunakan untuk iklan.${d.qa_catatan ? '<br>' + d.qa_catatan : ''}</div>` : '';
+      const meta = `${d.brand} · ${d.jenis_konten}`;
       const actions = d.status === 'rejected'
         ? `<a href="submit.html?revisi=${d.id}" class="btn-sm danger">Resubmit / Revisi</a>
-           <a href="${d.drive_link}" target="_blank" class="btn-sm outline">Lihat Konten</a>`
-        : `<a href="${d.drive_link}" target="_blank" class="btn-sm outline">Lihat Konten</a>`;
+           <button onclick="openPreview('${d.drive_link}','${d.judul.replace(/'/g,"\\'")}','${meta}')" class="btn-sm outline">▶ Preview Konten</button>`
+        : `<button onclick="openPreview('${d.drive_link}','${d.judul.replace(/'/g,"\\'")}','${meta}')" class="btn-sm outline">▶ Preview Konten</button>`;
 
       return `
         <div class="submission-card ${d.status}">
