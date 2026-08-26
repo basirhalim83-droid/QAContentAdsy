@@ -30,13 +30,6 @@
     input:focus, select:focus { background: #eeecfb; box-shadow: 0 0 0 2px #c7c2f5; }
     input::placeholder { color: #b0adc8; }
     select { appearance: none; cursor: pointer; }
-    .tambah-produk-btn { margin-top: 8px; background: none; border: none; color: #4f46e5; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; }
-    .tambah-produk-btn:hover { text-decoration: underline; }
-    .tambah-produk-wrap { display: none; margin-top: 8px; display: none; flex-direction: column; gap: 6px; }
-    .tambah-produk-wrap input { font-size: 13px; padding: 10px 14px; }
-    .tambah-produk-actions { display: flex; gap: 8px; }
-    .btn-tambah-simpan { flex: 1; padding: 9px; background: #4f46e5; color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .btn-tambah-batal { flex: 1; padding: 9px; background: #f5f4fb; color: #6b7280; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .btn { width: 100%; padding: 14px; background: #4f46e5; color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: background 0.2s; }
     .btn:hover { background: #4338ca; }
     .btn:disabled { background: #c4c0f0; cursor: not-allowed; }
@@ -75,14 +68,6 @@
           <select id="brand" required>
             <option value="">-- Pilih produk --</option>
           </select>
-          <button type="button" class="tambah-produk-btn" onclick="toggleTambahProduk()">+ Produk belum ada? Tambah baru</button>
-          <div class="tambah-produk-wrap" id="tambahProdukWrap">
-            <input type="text" id="inputProdukBaru" placeholder="Nama produk baru..." />
-            <div class="tambah-produk-actions">
-              <button type="button" class="btn-tambah-simpan" onclick="simpanProdukBaru()">Simpan</button>
-              <button type="button" class="btn-tambah-batal" onclick="toggleTambahProduk()">Batal</button>
-            </div>
-          </div>
         </div>
         <div class="field">
           <label>Judul Konten *</label>
@@ -139,23 +124,6 @@
         sel.appendChild(opt);
       });
     }
-
-    window.toggleTambahProduk = function() {
-      const wrap = document.getElementById('tambahProdukWrap');
-      const show = wrap.style.display !== 'flex';
-      wrap.style.display = show ? 'flex' : 'none';
-      if (show) document.getElementById('inputProdukBaru').focus();
-    };
-
-    window.simpanProdukBaru = async function() {
-      const nama = document.getElementById('inputProdukBaru').value.trim();
-      if (!nama) return;
-      const { error } = await supabase.from('products').insert({ nama });
-      if (error) { alert('Gagal menyimpan: ' + error.message); return; }
-      await loadProduk(nama);
-      document.getElementById('inputProdukBaru').value = '';
-      document.getElementById('tambahProdukWrap').style.display = 'none';
-    };
 
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session || data.session.user.user_metadata?.role !== 'advertiser') {
