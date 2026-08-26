@@ -145,6 +145,9 @@
       <select id="filterBulan" onchange="window.applyFilter()" style="padding:7px 14px;border-radius:20px;border:1.5px solid #e5e3f5;background:#fff;font-size:12px;font-weight:600;color:#6b7280;outline:none;cursor:pointer;font-family:inherit;">
         <option value="">Semua Bulan</option>
       </select>
+      <select id="filterProduk" onchange="window.applyFilter()" style="padding:7px 14px;border-radius:20px;border:1.5px solid #e5e3f5;background:#fff;font-size:12px;font-weight:600;color:#6b7280;outline:none;cursor:pointer;font-family:inherit;">
+        <option value="">Semua Produk</option>
+      </select>
     </div>
 
     <div class="submissions" id="submissionList">
@@ -198,6 +201,7 @@
       allData = data || [];
       updateStats();
       populateBulanFilter();
+      populateProdukFilter();
       renderList();
     }
 
@@ -210,6 +214,13 @@
         const label = new Date(y, mo - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
         sel.innerHTML += `<option value="${m}">${label}</option>`;
       });
+    }
+
+    function populateProdukFilter() {
+      const produk = [...new Set(allData.map(d => d.brand).filter(Boolean))].sort();
+      const sel = document.getElementById('filterProduk');
+      sel.innerHTML = '<option value="">Semua Produk</option>';
+      produk.forEach(p => { sel.innerHTML += `<option value="${p}">${p}</option>`; });
     }
 
     window.applyFilter = function() { renderList(); };
@@ -263,8 +274,10 @@
 
     function renderList() {
       const bulan = document.getElementById('filterBulan').value;
+      const produk = document.getElementById('filterProduk').value;
       let filtered = currentFilter === 'all' ? allData : allData.filter(d => d.status === currentFilter);
       if (bulan) filtered = filtered.filter(d => d.submitted_at?.startsWith(bulan));
+      if (produk) filtered = filtered.filter(d => d.brand === produk);
 
       const total = filtered.length;
       const totalPages = Math.ceil(total / PER_PAGE);
@@ -364,7 +377,13 @@
 
       const isDone = ['approved','rejected'].includes(d.status);
       const reviewBox = isDone
-        ? `<div class="review-done">✅ Sudah direview oleh ${d.qa_by || '-'} — ${formatDate(d.qa_at)}</div>`
+        ? `<div class="review-done">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+              <span>${d.status === 'approved' ? '✅' : '❌'} Direview oleh <strong>${d.qa_by || '-'}</strong> — ${formatDate(d.qa_at)}</span>
+              <button onclick="resetReview('${d.id}')" style="background:none;border:1px solid #d1d5db;color:#6b7280;font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px;cursor:pointer;">Ubah</button>
+            </div>
+            ${d.qa_catatan ? `<div style="margin-top:8px;padding:8px 12px;background:${d.status === 'rejected' ? '#fef2f2' : '#f0fdf4'};border-radius:8px;font-size:12px;color:${d.status === 'rejected' ? '#991b1b' : '#166534'};"><strong>Catatan:</strong> ${d.qa_catatan}</div>` : ''}
+          </div>`
         : `<div class="review-box">
             <label>Catatan QA (wajib jika Reject, opsional jika Approved)</label>
             <textarea id="catatan-${d.id}" placeholder="Tulis catatan atau alasan..."></textarea>
@@ -426,6 +445,16 @@
         }).catch(() => {});
       }
 
+      await loadData();
+    };
+
+    window.resetReview = async function(id) {
+      if (!confirm('Reset keputusan ini ke Pending? QA bisa review ulang.')) return;
+      const { error } = await supabase
+        .from('content_submissions')
+        .update({ status: 'pending', qa_catatan: null, qa_by: null, qa_at: null })
+        .eq('id', id);
+      if (error) { alert('Gagal: ' + error.message); return; }
       await loadData();
     };
 
