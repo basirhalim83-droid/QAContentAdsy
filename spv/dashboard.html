@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard SPV — QA Konten</title>
+  <title>Dashboard SPV — QC Konten</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #eae8f5; min-height: 100vh; }
@@ -90,7 +90,7 @@
 </head>
 <body>
   <nav>
-    <a class="nav-logo" href="dashboard.html">QA Konten</a>
+    <a class="nav-logo" href="dashboard.html">QC Konten</a>
     <div class="nav-right">
       <span class="nav-user" id="navUser"></span>
       <button class="nav-btn" onclick="doLogout()">Keluar</button>
@@ -99,7 +99,7 @@
 
   <div class="page">
     <h2>Dashboard SPV</h2>
-    <p class="page-sub">Monitor performa semua advertiser dalam proses QA konten.</p>
+    <p class="page-sub">Monitor performa semua advertiser dalam proses QC konten.</p>
 
     <!-- Global stats -->
     <div class="stats">
@@ -154,7 +154,7 @@
             <th>Jenis</th>
             <th>Status</th>
             <th>Tanggal</th>
-            <th>Catatan QA</th>
+            <th>Catatan QC</th>
             <th>Preview</th>
           </tr>
         </thead>
@@ -362,7 +362,7 @@
           <td>${d.jenis_konten}</td>
           <td><span class="badge ${d.status}">${badgeLabel(d.status)}</span></td>
           <td>${formatDate(d.submitted_at)}</td>
-          <td style="max-width:180px;color:#6b7280">${d.qa_catatan || '-'}</td>
+          <td style="max-width:180px;color:#6b7280">${d.qc_catatan || '-'}</td>
           <td><button onclick="openPreview('${d.drive_link}','${(d.judul||'').replace(/'/g,"\\'")}','${d.brand} · ${d.jenis_konten}')" style="background:#f5f4fb;border:none;color:#4f46e5;font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;">▶ Preview</button></td>
         </tr>`).join('');
 

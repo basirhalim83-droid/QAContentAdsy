@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Advertiser — QA Konten</title>
+  <title>Dashboard Advertiser — QC Konten</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #eae8f5; min-height: 100vh; }
@@ -72,8 +72,8 @@
     .btn-sm.outline { border: 1.5px solid #c7c2f5; color: #4f46e5; background: #f5f4fb; }
     .btn-sm.outline:hover { background: #eceaf8; }
     .btn-sm.danger { border: 1.5px solid #fecaca; color: #dc2626; background: #fef2f2; }
-    .catatan-qa { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px 14px; margin-top: 10px; font-size: 13px; color: #7f1d1d; }
-    .catatan-qa strong { display: block; margin-bottom: 4px; color: #dc2626; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .catatan-qc { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px 14px; margin-top: 10px; font-size: 13px; color: #7f1d1d; }
+    .catatan-qc strong { display: block; margin-bottom: 4px; color: #dc2626; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
     .approved-info { background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 12px 14px; margin-top: 10px; font-size: 13px; color: #14532d; }
     .approved-info strong { display: block; margin-bottom: 4px; color: #16a34a; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
     .revision-chain { background: #f5f4fb; border-radius: 10px; padding: 10px 14px; margin-top: 10px; font-size: 12px; color: #6b7280; }
@@ -109,7 +109,7 @@
 </head>
 <body>
   <nav>
-    <a class="nav-logo" href="dashboard.html">QA Konten</a>
+    <a class="nav-logo" href="dashboard.html">QC Konten</a>
     <div class="nav-right">
       <span class="nav-user" id="navUser"></span>
       <a href="submit.html" class="nav-btn solid">+ Submit Konten</a>
@@ -119,7 +119,7 @@
 
   <div class="page">
     <h2>Dashboard Advertiser</h2>
-    <p class="page-sub">Pantau status konten yang kamu submit ke QA.</p>
+    <p class="page-sub">Pantau status konten yang kamu submit ke QC.</p>
 
     <!-- Notif banner -->
     <div class="notif-banner" id="notifBanner">
@@ -268,8 +268,8 @@
 
     function renderNotif() {
       const recent = allData.filter(d => {
-        if (!d.qa_at) return false;
-        const diff = Date.now() - new Date(d.qa_at).getTime();
+        if (!d.qc_at) return false;
+        const diff = Date.now() - new Date(d.qc_at).getTime();
         return diff < 48 * 3600 * 1000 && (d.status === 'rejected' || d.status === 'approved');
       });
       if (recent.length === 0) return;
@@ -277,7 +277,7 @@
       document.getElementById('notifList').innerHTML = recent.map(d => {
         const icon = d.status === 'rejected' ? '❌' : '✅';
         const label = d.status === 'rejected' ? 'Tidak Di-acc' : 'Approved';
-        return `<div class="notif-item">${icon} <strong>${d.judul}</strong> — ${label}${d.qa_catatan ? ': ' + d.qa_catatan : ''}</div>`;
+        return `<div class="notif-item">${icon} <strong>${d.judul}</strong> — ${label}${d.qc_catatan ? ': ' + d.qc_catatan : ''}</div>`;
       }).join('');
     }
 
@@ -386,10 +386,10 @@
 
     function renderCard(d) {
       const chain = getRevisionChain(d);
-      const catatanQA = d.qa_catatan && d.status === 'rejected'
-        ? `<div class="catatan-qa"><strong>Catatan QA</strong>${d.qa_catatan}</div>` : '';
+      const catatanQC = d.qc_catatan && d.status === 'rejected'
+        ? `<div class="catatan-qc"><strong>Catatan QC</strong>${d.qc_catatan}</div>` : '';
       const approvedInfo = d.status === 'approved'
-        ? `<div class="approved-info"><strong>✅ Konten Disetujui</strong>Konten telah lolos review QA dan bisa digunakan untuk iklan.${d.qa_catatan ? '<br>' + d.qa_catatan : ''}</div>` : '';
+        ? `<div class="approved-info"><strong>✅ Konten Disetujui</strong>Konten telah lolos review QC dan bisa digunakan untuk iklan.${d.qc_catatan ? '<br>' + d.qc_catatan : ''}</div>` : '';
       const meta = `${d.brand} · ${d.jenis_konten}`;
       const actions = d.status === 'rejected'
         ? `<a href="submit.html?revisi=${d.id}" class="btn-sm danger">Resubmit / Revisi</a>
@@ -409,7 +409,7 @@
                 <span style="font-weight:700;color:${statusColor[r.status] || '#9ca3af'};">${statusLabel[r.status] || r.status}</span>
                 <button onclick="openPreview('${r.drive_link}','${r.judul.replace(/'/g,"\\'")}','Revisi ${r.revision_number}')" style="background:#f5f4fb;border:none;color:#4f46e5;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;cursor:pointer;">▶ Preview</button>
               </div>
-              ${r.qa_catatan ? `<div style="margin-top:4px;padding:5px 10px;background:${r.status === 'rejected' ? '#fef2f2' : '#f0fdf4'};border-radius:6px;font-size:11px;color:${r.status === 'rejected' ? '#991b1b' : '#166534'};">💬 ${r.qa_catatan}</div>` : ''}
+              ${r.qc_catatan ? `<div style="margin-top:4px;padding:5px 10px;background:${r.status === 'rejected' ? '#fef2f2' : '#f0fdf4'};border-radius:6px;font-size:11px;color:${r.status === 'rejected' ? '#991b1b' : '#166534'};">💬 ${r.qc_catatan}</div>` : ''}
             </div>`).join('')}
         </div>` : '';
 
@@ -424,11 +424,11 @@
           </div>
           <div class="card-meta">
             <span>📅 ${formatDate(d.submitted_at)}</span>
-            ${d.qa_at ? `<span>🔍 Direview: ${formatDate(d.qa_at)}</span>` : ''}
-            ${d.qa_by ? `<span>👤 QA: ${d.qa_by}</span>` : ''}
+            ${d.qc_at ? `<span>🔍 Direview: ${formatDate(d.qc_at)}</span>` : ''}
+            ${d.qc_by ? `<span>👤 QC: ${d.qc_by}</span>` : ''}
           </div>
           ${revisionHtml}
-          ${catatanQA}
+          ${catatanQC}
           ${approvedInfo}
           <div class="card-actions">${actions}</div>
         </div>`;

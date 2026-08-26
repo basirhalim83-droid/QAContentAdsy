@@ -9,12 +9,12 @@ export default async function handler(req, res) {
 
   let message = '';
 
-  if (type === 'qa_result') {
+  if (type === 'qc_result') {
     const { advertiser_name, judul, brand, status, catatan } = data;
     if (status === 'approved') {
-      message = `Halo ${advertiser_name}! ✅\n\nKonten kamu telah di-review oleh tim QA.\n\n*Judul:* ${judul}\n*Brand:* ${brand}\n*Status:* APPROVED ✅\n\nKonten kamu sudah disetujui dan bisa digunakan untuk iklan.${catatan ? '\n\n*Catatan QA:* ' + catatan : ''}\n\nTerima kasih! 🎉`;
+      message = `Halo ${advertiser_name}! ✅\n\nKonten kamu telah di-review oleh tim QC.\n\n*Judul:* ${judul}\n*Brand:* ${brand}\n*Status:* APPROVED ✅\n\nKonten kamu sudah disetujui dan bisa digunakan untuk iklan.${catatan ? '\n\n*Catatan QC:* ' + catatan : ''}\n\nTerima kasih! 🎉`;
     } else if (status === 'rejected') {
-      message = `Halo ${advertiser_name},\n\nKonten kamu telah di-review oleh tim QA.\n\n*Judul:* ${judul}\n*Brand:* ${brand}\n*Status:* TIDAK DI-ACC ❌\n\n*Catatan QA:* ${catatan || '-'}\n\nSilakan submit ulang konten yang sudah direvisi melalui dashboard kamu ya. 🙏`;
+      message = `Halo ${advertiser_name},\n\nKonten kamu telah di-review oleh tim QC.\n\n*Judul:* ${judul}\n*Brand:* ${brand}\n*Status:* TIDAK DI-ACC ❌\n\n*Catatan QC:* ${catatan || '-'}\n\nSilakan submit ulang konten yang sudah direvisi melalui dashboard kamu ya. 🙏`;
     }
   }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Submit Konten — QA Konten</title>
+  <title>Submit Konten — QC Konten</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #eae8f5; min-height: 100vh; }
@@ -44,7 +44,7 @@
 </head>
 <body>
   <nav>
-    <a class="nav-logo" href="dashboard.html">QA Konten</a>
+    <a class="nav-logo" href="dashboard.html">QC Konten</a>
     <div class="nav-right">
       <span class="nav-user" id="navUser"></span>
       <a href="dashboard.html" class="nav-btn outline">Dashboard</a>
@@ -55,7 +55,7 @@
   <div class="page">
     <div class="card">
       <h1 id="pageTitle">Submit Konten</h1>
-      <p class="sub" id="pageSub">Isi form di bawah untuk mengajukan konten ke QA.</p>
+      <p class="sub" id="pageSub">Isi form di bawah untuk mengajukan konten ke QC.</p>
 
       <div class="revision-banner" id="revisionBanner">
         <strong>Resubmit / Revisi</strong>
@@ -88,13 +88,13 @@
           <input type="url" id="drive_link" placeholder="https://drive.google.com/..." required />
           <p class="link-hint">Pastikan link sudah di-set "Anyone with the link can view"</p>
         </div>
-        <button type="submit" class="btn" id="submitBtn">Kirim untuk di-QA</button>
+        <button type="submit" class="btn" id="submitBtn">Kirim untuk di-QC</button>
         <p class="error-msg" id="errorMsg"></p>
       </form>
 
       <div class="success-box" id="successBox">
         <h3>Berhasil Dikirim!</h3>
-        <p>Konten kamu sudah masuk ke antrian QA. Kamu akan dapat notif WhatsApp setelah direview.</p>
+        <p>Konten kamu sudah masuk ke antrian QC. Kamu akan dapat notif WhatsApp setelah direview.</p>
         <br />
         <a href="dashboard.html" style="color:#4f46e5; font-weight:600; font-size:14px;">Pantau status di dashboard →</a>
       </div>
@@ -143,7 +143,7 @@
           document.getElementById('pageSub').textContent = 'Kirim ulang konten yang telah direvisi.';
           document.getElementById('revisionBanner').style.display = 'block';
           document.getElementById('revisionInfo').textContent =
-            `Revisi dari: "${original.judul}" — Catatan QA: ${original.qa_catatan || '-'}`;
+            `Revisi dari: "${original.judul}" — Catatan QC: ${original.qc_catatan || '-'}`;
           document.getElementById('brand').value = original.brand;
           document.getElementById('jenis_konten').value = original.jenis_konten;
           document.getElementById('judul').value = original.judul;
@@ -201,7 +201,7 @@
       if (error) {
         errorMsg.textContent = 'Error: ' + error.message;
         errorMsg.style.display = 'block';
-        btn.disabled = false; btn.textContent = revisionOf ? 'Kirim Revisi' : 'Kirim untuk di-QA';
+        btn.disabled = false; btn.textContent = revisionOf ? 'Kirim Revisi' : 'Kirim untuk di-QC';
       } else {
         document.getElementById('submitForm').style.display = 'none';
         document.getElementById('successBox').style.display = 'block';
