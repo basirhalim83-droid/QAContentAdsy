@@ -25,15 +25,17 @@
     .page-sub { font-size: 13px; color: #9ca3af; margin-bottom: 24px; }
 
     /* Stats */
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
     .stat-card { background: #fff; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 2px 12px rgba(80,70,160,0.07); }
     .stat-num { font-size: 28px; font-weight: 800; color: #1e1e2e; }
     .stat-label { font-size: 12px; color: #9ca3af; margin-top: 4px; font-weight: 500; }
+    .stat-pct { font-size: 12px; font-weight: 700; margin-top: 4px; }
     .stat-card.pending .stat-num { color: #d97706; }
-    .stat-card.in_review .stat-num { color: #4f46e5; }
+    .stat-card.pending .stat-pct { color: #d97706; }
     .stat-card.approved .stat-num { color: #16a34a; }
-    .stat-card.approved_iklan .stat-num { color: #0891b2; }
+    .stat-card.approved .stat-pct { color: #16a34a; }
     .stat-card.rejected .stat-num { color: #dc2626; }
+    .stat-card.rejected .stat-pct { color: #dc2626; }
 
     /* Notif */
     .notif-banner { background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: none; }
@@ -46,30 +48,25 @@
     .filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
     .filter-btn { padding: 7px 16px; border-radius: 20px; border: 1.5px solid #e5e3f5; background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; color: #6b7280; transition: all 0.2s; }
     .filter-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+    .filter-select { padding: 7px 14px; border-radius: 20px; border: 1.5px solid #e5e3f5; background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; color: #6b7280; outline: none; font-family: inherit; }
+    .filter-select:focus { border-color: #4f46e5; color: #4f46e5; }
 
     .submissions { display: flex; flex-direction: column; gap: 14px; }
     .submission-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(80,70,160,0.07); border-left: 4px solid #e5e3f5; }
     .submission-card.pending { border-left-color: #d97706; }
-    .submission-card.in_review { border-left-color: #4f46e5; }
     .submission-card.approved { border-left-color: #16a34a; }
-    .submission-card.approved_iklan { border-left-color: #0891b2; }
     .submission-card.rejected { border-left-color: #dc2626; }
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
-    .card-title-wrap {}
     .card-judul { font-size: 15px; font-weight: 700; color: #1e1e2e; }
     .card-brand { font-size: 12px; color: #9ca3af; margin-top: 2px; }
     .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
     .badge.pending { background: #fffbeb; color: #d97706; }
-    .badge.in_review { background: #ede9fe; color: #4f46e5; }
     .badge.approved { background: #f0fdf4; color: #16a34a; }
-    .badge.approved_iklan { background: #ecfeff; color: #0891b2; }
     .badge.rejected { background: #fef2f2; color: #dc2626; }
     .card-meta { display: flex; gap: 16px; font-size: 12px; color: #9ca3af; flex-wrap: wrap; }
     .card-meta span { display: flex; align-items: center; gap: 4px; }
     .card-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
     .btn-sm { padding: 7px 16px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; display: inline-block; }
-    .btn-sm.primary { background: #4f46e5; color: #fff; }
-    .btn-sm.primary:hover { background: #4338ca; }
     .btn-sm.outline { border: 1.5px solid #c7c2f5; color: #4f46e5; background: #f5f4fb; }
     .btn-sm.outline:hover { background: #eceaf8; }
     .btn-sm.danger { border: 1.5px solid #fecaca; color: #dc2626; background: #fef2f2; }
@@ -82,6 +79,10 @@
 
     .empty { text-align: center; padding: 60px 20px; color: #9ca3af; font-size: 14px; }
     .loading { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+
+    @media (max-width: 600px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -105,12 +106,26 @@
 
     <!-- Stats -->
     <div class="stats">
-      <div class="stat-card"><div class="stat-num" id="statTotal">-</div><div class="stat-label">Total Submit</div></div>
-      <div class="stat-card pending"><div class="stat-num" id="statPending">-</div><div class="stat-label">Pending</div></div>
-      <div class="stat-card in_review"><div class="stat-num" id="statReview">-</div><div class="stat-label">In Review</div></div>
-      <div class="stat-card approved"><div class="stat-num" id="statApproved">-</div><div class="stat-label">Approved</div></div>
-      <div class="stat-card approved_iklan"><div class="stat-num" id="statIklan">-</div><div class="stat-label">Bisa Iklan</div></div>
-      <div class="stat-card rejected"><div class="stat-num" id="statRejected">-</div><div class="stat-label">Rejected</div></div>
+      <div class="stat-card">
+        <div class="stat-num" id="statTotal">-</div>
+        <div class="stat-label">Total Submit</div>
+        <div class="stat-pct" id="pctTotal" style="color:#9ca3af">100%</div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-num" id="statPending">-</div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-pct" id="pctPending">-</div>
+      </div>
+      <div class="stat-card approved">
+        <div class="stat-num" id="statApproved">-</div>
+        <div class="stat-label">Approved</div>
+        <div class="stat-pct" id="pctApproved">-</div>
+      </div>
+      <div class="stat-card rejected">
+        <div class="stat-num" id="statRejected">-</div>
+        <div class="stat-label">Rejected</div>
+        <div class="stat-pct" id="pctRejected">-</div>
+      </div>
     </div>
 
     <!-- Filter -->
@@ -120,10 +135,18 @@
     <div class="filter-row">
       <button class="filter-btn active" onclick="setFilter('all', this)">Semua</button>
       <button class="filter-btn" onclick="setFilter('pending', this)">Pending</button>
-      <button class="filter-btn" onclick="setFilter('in_review', this)">In Review</button>
       <button class="filter-btn" onclick="setFilter('approved', this)">Approved</button>
-      <button class="filter-btn" onclick="setFilter('approved_iklan', this)">Bisa Iklan</button>
       <button class="filter-btn" onclick="setFilter('rejected', this)">Rejected</button>
+      <select class="filter-select" id="filterJenis" onchange="renderList()">
+        <option value="">Semua Jenis</option>
+        <option value="Foto Produk">Foto Produk</option>
+        <option value="Video Produk">Video Produk</option>
+        <option value="Video Iklan">Video Iklan</option>
+        <option value="Desain Konten">Desain Konten</option>
+      </select>
+      <select class="filter-select" id="filterProduk" onchange="renderList()">
+        <option value="">Semua Produk</option>
+      </select>
     </div>
 
     <div class="submissions" id="submissionList">
@@ -160,33 +183,54 @@
       allData = data || [];
       updateStats();
       renderNotif();
+      loadProdukFilter();
       renderList();
     }
 
+    async function loadProdukFilter() {
+      const { data } = await supabase.from('products').select('nama').order('nama');
+      const sel = document.getElementById('filterProduk');
+      sel.innerHTML = '<option value="">Semua Produk</option>';
+      (data || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.nama; opt.textContent = p.nama;
+        sel.appendChild(opt);
+      });
+    }
+
+    function pct(num, total) {
+      if (!total) return '0%';
+      return Math.round(num / total * 100) + '%';
+    }
+
     function updateStats() {
-      const count = (status) => allData.filter(d => d.status === status).length;
-      document.getElementById('statTotal').textContent = allData.length;
-      document.getElementById('statPending').textContent = count('pending');
-      document.getElementById('statReview').textContent = count('in_review');
-      document.getElementById('statApproved').textContent = count('approved');
-      document.getElementById('statIklan').textContent = count('approved_iklan');
-      document.getElementById('statRejected').textContent = count('rejected');
+      const total = allData.length;
+      const pending = allData.filter(d => d.status === 'pending').length;
+      const approved = allData.filter(d => d.status === 'approved').length;
+      const rejected = allData.filter(d => d.status === 'rejected').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statApproved').textContent = approved;
+      document.getElementById('statRejected').textContent = rejected;
+
+      document.getElementById('pctTotal').textContent = total + ' konten';
+      document.getElementById('pctPending').textContent = pct(pending, total);
+      document.getElementById('pctApproved').textContent = pct(approved, total);
+      document.getElementById('pctRejected').textContent = pct(rejected, total);
     }
 
     function renderNotif() {
-      // Tampilkan item yang baru berubah status (rejected/approved) yang belum lebih dari 48 jam
       const recent = allData.filter(d => {
         if (!d.qa_at) return false;
         const diff = Date.now() - new Date(d.qa_at).getTime();
-        return diff < 48 * 3600 * 1000 && (d.status === 'rejected' || d.status === 'approved' || d.status === 'approved_iklan');
+        return diff < 48 * 3600 * 1000 && (d.status === 'rejected' || d.status === 'approved');
       });
       if (recent.length === 0) return;
-      const banner = document.getElementById('notifBanner');
-      const list = document.getElementById('notifList');
-      banner.style.display = 'block';
-      list.innerHTML = recent.map(d => {
-        const icon = d.status === 'rejected' ? '❌' : d.status === 'approved_iklan' ? '🎯' : '✅';
-        const label = d.status === 'rejected' ? 'Tidak Di-acc' : d.status === 'approved_iklan' ? 'Approved - Bisa Dibuat Iklan' : 'Approved';
+      document.getElementById('notifBanner').style.display = 'block';
+      document.getElementById('notifList').innerHTML = recent.map(d => {
+        const icon = d.status === 'rejected' ? '❌' : '✅';
+        const label = d.status === 'rejected' ? 'Tidak Di-acc' : 'Approved';
         return `<div class="notif-item">${icon} <strong>${d.judul}</strong> — ${label}${d.qa_catatan ? ': ' + d.qa_catatan : ''}</div>`;
       }).join('');
     }
@@ -199,7 +243,11 @@
     };
 
     function renderList() {
-      const filtered = currentFilter === 'all' ? allData : allData.filter(d => d.status === currentFilter);
+      const filterJenis = document.getElementById('filterJenis').value;
+      const filterProduk = document.getElementById('filterProduk').value;
+      let filtered = currentFilter === 'all' ? allData : allData.filter(d => d.status === currentFilter);
+      if (filterJenis) filtered = filtered.filter(d => d.jenis_konten === filterJenis);
+      if (filterProduk) filtered = filtered.filter(d => d.brand === filterProduk);
       const container = document.getElementById('submissionList');
       if (filtered.length === 0) {
         container.innerHTML = '<div class="empty">Belum ada submisi di kategori ini.</div>';
@@ -209,8 +257,7 @@
     }
 
     function badgeLabel(status) {
-      const map = { pending: 'Pending', in_review: 'In Review', approved: 'Approved', approved_iklan: 'Approved - Bisa Iklan', rejected: 'Rejected' };
-      return map[status] || status;
+      return { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' }[status] || status;
     }
 
     function formatDate(str) {
@@ -219,11 +266,12 @@
     }
 
     function renderCard(d) {
-      const revisionInfo = d.revision_of ? `<div class="revision-chain"><strong>Revisi ${d.revision_number}</strong> dari submisi sebelumnya</div>` : '';
+      const revisionInfo = d.revision_of
+        ? `<div class="revision-chain"><strong>Revisi ${d.revision_number}</strong> dari submisi sebelumnya</div>` : '';
       const catatanQA = d.qa_catatan && d.status === 'rejected'
         ? `<div class="catatan-qa"><strong>Catatan QA</strong>${d.qa_catatan}</div>` : '';
-      const approvedInfo = (d.status === 'approved' || d.status === 'approved_iklan')
-        ? `<div class="approved-info"><strong>${d.status === 'approved_iklan' ? '🎯 Konten ini bisa digunakan untuk iklan' : '✅ Konten disetujui'}</strong>${d.qa_catatan ? d.qa_catatan : 'Konten telah lolos review QA.'}</div>` : '';
+      const approvedInfo = d.status === 'approved'
+        ? `<div class="approved-info"><strong>✅ Konten Disetujui</strong>Konten telah lolos review QA dan bisa digunakan untuk iklan.${d.qa_catatan ? '<br>' + d.qa_catatan : ''}</div>` : '';
       const actions = d.status === 'rejected'
         ? `<a href="submit.html?revisi=${d.id}" class="btn-sm danger">Resubmit / Revisi</a>
            <a href="${d.drive_link}" target="_blank" class="btn-sm outline">Lihat Konten</a>`
@@ -232,7 +280,7 @@
       return `
         <div class="submission-card ${d.status}">
           <div class="card-top">
-            <div class="card-title-wrap">
+            <div>
               <div class="card-judul">${d.judul}</div>
               <div class="card-brand">${d.brand} · ${d.jenis_konten}</div>
             </div>

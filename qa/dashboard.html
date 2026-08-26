@@ -26,8 +26,8 @@
     .stat-card { background: #fff; border-radius: 14px; padding: 18px; text-align: center; box-shadow: 0 2px 12px rgba(80,70,160,0.07); }
     .stat-num { font-size: 26px; font-weight: 800; color: #1e1e2e; }
     .stat-label { font-size: 11px; color: #9ca3af; margin-top: 4px; font-weight: 500; }
+    .stat-pct { font-size: 12px; font-weight: 700; margin-top: 4px; color: #9ca3af; }
     .stat-card.pending .stat-num { color: #d97706; }
-    .stat-card.in_review .stat-num { color: #4f46e5; }
 
     /* Filter */
     .filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -92,14 +92,16 @@
     <p class="page-sub">Review konten yang disubmit advertiser.</p>
 
     <div class="stats">
-      <div class="stat-card pending"><div class="stat-num" id="statPending">-</div><div class="stat-label">Pending</div></div>
-      <div class="stat-card in_review"><div class="stat-num" id="statReview">-</div><div class="stat-label">In Review</div></div>
-      <div class="stat-card"><div class="stat-num" id="statDone">-</div><div class="stat-label">Sudah Direview</div></div>
+      <div class="stat-card pending"><div class="stat-num" id="statPending">-</div><div class="stat-label">Pending</div><div class="stat-pct" id="pctPending">-</div></div>
+      <div class="stat-card"><div class="stat-num" id="statApproved">-</div><div class="stat-label">Approved</div><div class="stat-pct" id="pctApproved" style="color:#16a34a">-</div></div>
+      <div class="stat-card"><div class="stat-num" id="statRejected">-</div><div class="stat-label">Rejected</div><div class="stat-pct" id="pctRejected" style="color:#dc2626">-</div></div>
+      <div class="stat-card"><div class="stat-num" id="statDone">-</div><div class="stat-label">Total Direview</div><div class="stat-pct" id="pctDone">-</div></div>
     </div>
 
     <div class="filter-row">
       <button class="filter-btn active" onclick="setFilter('pending', this)">Pending</button>
-      <button class="filter-btn" onclick="setFilter('in_review', this)">In Review</button>
+      <button class="filter-btn" onclick="setFilter('approved', this)">Approved</button>
+      <button class="filter-btn" onclick="setFilter('rejected', this)">Rejected</button>
       <button class="filter-btn" onclick="setFilter('all', this)">Semua</button>
     </div>
 
@@ -136,10 +138,27 @@
       renderList();
     }
 
+    function pct(num, total) {
+      if (!total) return '0%';
+      return Math.round(num / total * 100) + '%';
+    }
+
     function updateStats() {
-      document.getElementById('statPending').textContent = allData.filter(d => d.status === 'pending').length;
-      document.getElementById('statReview').textContent = allData.filter(d => d.status === 'in_review').length;
-      document.getElementById('statDone').textContent = allData.filter(d => ['approved','approved_iklan','rejected'].includes(d.status)).length;
+      const total = allData.length;
+      const pending = allData.filter(d => d.status === 'pending').length;
+      const approved = allData.filter(d => d.status === 'approved').length;
+      const rejected = allData.filter(d => d.status === 'rejected').length;
+      const done = approved + rejected;
+
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statApproved').textContent = approved;
+      document.getElementById('statRejected').textContent = rejected;
+      document.getElementById('statDone').textContent = done;
+
+      document.getElementById('pctPending').textContent = pct(pending, total);
+      document.getElementById('pctApproved').textContent = pct(approved, total);
+      document.getElementById('pctRejected').textContent = pct(rejected, total);
+      document.getElementById('pctDone').textContent = total + ' total';
     }
 
     window.setFilter = function(filter, el) {
@@ -157,8 +176,7 @@
     }
 
     function badgeLabel(s) {
-      const map = { pending: 'Pending', in_review: 'In Review', approved: 'Approved', approved_iklan: 'Bisa Iklan', rejected: 'Rejected' };
-      return map[s] || s;
+      return { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' }[s] || s;
     }
 
     function formatDate(str) {
@@ -184,7 +202,7 @@
             </div>`).join('')}
         </div>` : '';
 
-      const isDone = ['approved','approved_iklan','rejected'].includes(d.status);
+      const isDone = ['approved','rejected'].includes(d.status);
       const reviewBox = isDone
         ? `<div class="review-done">✅ Sudah direview oleh ${d.qa_by || '-'} — ${formatDate(d.qa_at)}</div>`
         : `<div class="review-box">
@@ -193,7 +211,6 @@
             <div class="review-actions">
               <button class="btn-review reject" onclick="submitReview('${d.id}', 'rejected')">✕ Reject</button>
               <button class="btn-review approve" onclick="submitReview('${d.id}', 'approved')">✓ Approved</button>
-              <button class="btn-review approve-iklan" onclick="submitReview('${d.id}', 'approved_iklan')">🎯 Bisa Iklan</button>
             </div>
           </div>`;
 

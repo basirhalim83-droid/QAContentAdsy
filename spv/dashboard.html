@@ -27,8 +27,8 @@
     .stat-num { font-size: 28px; font-weight: 800; color: #1e1e2e; }
     .stat-label { font-size: 11px; color: #9ca3af; margin-top: 4px; font-weight: 500; }
     .stat-card.approved .stat-num { color: #16a34a; }
-    .stat-card.approved_iklan .stat-num { color: #0891b2; }
     .stat-card.rejected .stat-num { color: #dc2626; }
+    .stat-num-pct { font-size: 12px; font-weight: 700; margin-top: 4px; color: #9ca3af; }
 
     /* Filter */
     .toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
@@ -95,11 +95,26 @@
 
     <!-- Global stats -->
     <div class="stats">
-      <div class="stat-card"><div class="stat-num" id="gTotal">-</div><div class="stat-label">Total Submit</div></div>
-      <div class="stat-card approved"><div class="stat-num" id="gApproved">-</div><div class="stat-label">Approved</div></div>
-      <div class="stat-card approved_iklan"><div class="stat-num" id="gIklan">-</div><div class="stat-label">Bisa Iklan</div></div>
-      <div class="stat-card rejected"><div class="stat-num" id="gRejected">-</div><div class="stat-label">Rejected</div></div>
-      <div class="stat-card"><div class="stat-num" id="gPending">-</div><div class="stat-label">Pending/Review</div></div>
+      <div class="stat-card">
+        <div class="stat-num" id="gTotal">-</div>
+        <div class="stat-label">Total Submit</div>
+        <div class="stat-num-pct" id="gTotalPct">-</div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-num" id="gPending">-</div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-num-pct" id="gPendingPct" style="color:#d97706">-</div>
+      </div>
+      <div class="stat-card approved">
+        <div class="stat-num" id="gApproved">-</div>
+        <div class="stat-label">Approved</div>
+        <div class="stat-num-pct" id="gApprovedPct" style="color:#16a34a">-</div>
+      </div>
+      <div class="stat-card rejected">
+        <div class="stat-num" id="gRejected">-</div>
+        <div class="stat-label">Rejected</div>
+        <div class="stat-num-pct" id="gRejectedPct" style="color:#dc2626">-</div>
+      </div>
     </div>
 
     <!-- Filter bulan -->
@@ -192,12 +207,26 @@
       if (selectedAdv) renderDetail(selectedAdv);
     };
 
+    function pct(num, total) {
+      if (!total) return '0%';
+      return Math.round(num / total * 100) + '%';
+    }
+
     function updateGlobalStats() {
-      document.getElementById('gTotal').textContent = filteredData.length;
-      document.getElementById('gApproved').textContent = filteredData.filter(d => d.status === 'approved').length;
-      document.getElementById('gIklan').textContent = filteredData.filter(d => d.status === 'approved_iklan').length;
-      document.getElementById('gRejected').textContent = filteredData.filter(d => d.status === 'rejected').length;
-      document.getElementById('gPending').textContent = filteredData.filter(d => ['pending','in_review'].includes(d.status)).length;
+      const total = filteredData.length;
+      const pending = filteredData.filter(d => d.status === 'pending').length;
+      const approved = filteredData.filter(d => d.status === 'approved').length;
+      const rejected = filteredData.filter(d => d.status === 'rejected').length;
+
+      document.getElementById('gTotal').textContent = total;
+      document.getElementById('gPending').textContent = pending;
+      document.getElementById('gApproved').textContent = approved;
+      document.getElementById('gRejected').textContent = rejected;
+
+      document.getElementById('gTotalPct').textContent = total + ' konten';
+      document.getElementById('gPendingPct').textContent = pct(pending, total);
+      document.getElementById('gApprovedPct').textContent = pct(approved, total);
+      document.getElementById('gRejectedPct').textContent = pct(rejected, total);
     }
 
     function renderAdvGrid() {
@@ -214,10 +243,9 @@
       grid.innerHTML = advs.map(([name, items]) => {
         const total = items.length;
         const approved = items.filter(d => d.status === 'approved').length;
-        const iklan = items.filter(d => d.status === 'approved_iklan').length;
         const rejected = items.filter(d => d.status === 'rejected').length;
-        const pending = items.filter(d => ['pending','in_review'].includes(d.status)).length;
-        const accRate = total > 0 ? Math.round((approved + iklan) / total * 100) : 0;
+        const pending = items.filter(d => d.status === 'pending').length;
+        const accRate = total > 0 ? Math.round(approved / total * 100) : 0;
         const isSelected = selectedAdv === name;
 
         return `
@@ -225,11 +253,11 @@
             <div class="adv-name">👤 ${name}</div>
             <div class="adv-stats">
               <div class="adv-stat total"><div class="adv-stat-num">${total}</div><div class="adv-stat-label">Total</div></div>
-              <div class="adv-stat approved"><div class="adv-stat-num">${approved}</div><div class="adv-stat-label">Approved</div></div>
-              <div class="adv-stat approved_iklan"><div class="adv-stat-num">${iklan}</div><div class="adv-stat-label">Bisa Iklan</div></div>
-              <div class="adv-stat rejected"><div class="adv-stat-num">${rejected}</div><div class="adv-stat-label">Rejected</div></div>
               <div class="adv-stat pending"><div class="adv-stat-num">${pending}</div><div class="adv-stat-label">Pending</div></div>
-              <div class="adv-stat total"><div class="adv-stat-num">${accRate}%</div><div class="adv-stat-label">Acc Rate</div></div>
+              <div class="adv-stat approved"><div class="adv-stat-num">${approved}</div><div class="adv-stat-label">Approved</div></div>
+              <div class="adv-stat rejected"><div class="adv-stat-num">${rejected}</div><div class="adv-stat-label">Rejected</div></div>
+              <div class="adv-stat total"><div class="adv-stat-num">${pct(approved, total)}</div><div class="adv-stat-label">Acc Rate</div></div>
+              <div class="adv-stat total"><div class="adv-stat-num">${pct(rejected, total)}</div><div class="adv-stat-label">Reject Rate</div></div>
             </div>
             <div class="acc-rate">
               <div class="acc-rate-label">Acc Rate</div>
@@ -256,8 +284,7 @@
       section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
       function badgeLabel(s) {
-        const map = { pending: 'Pending', in_review: 'In Review', approved: 'Approved', approved_iklan: 'Bisa Iklan', rejected: 'Rejected' };
-        return map[s] || s;
+        return { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' }[s] || s;
       }
       function formatDate(str) {
         if (!str) return '-';
