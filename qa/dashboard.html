@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard QA — QA Konten</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #eae8f5; min-height: 100vh; }
+    nav {
+      background: #fff; padding: 14px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 0 #e5e3f5; position: sticky; top: 0; z-index: 10;
+    }
+    .nav-logo { font-size: 18px; font-weight: 800; color: #4f46e5; text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-user { font-size: 14px; color: #374151; font-weight: 500; }
+    .nav-btn { padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; background: none; color: #9ca3af; }
+    .nav-btn:hover { color: #dc2626; }
+    .page { padding: 32px 24px; max-width: 960px; margin: 0 auto; }
+    h2 { font-size: 20px; font-weight: 700; color: #1e1e2e; margin-bottom: 6px; }
+    .page-sub { font-size: 13px; color: #9ca3af; margin-bottom: 24px; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 28px; }
+    .stat-card { background: #fff; border-radius: 14px; padding: 18px; text-align: center; box-shadow: 0 2px 12px rgba(80,70,160,0.07); }
+    .stat-num { font-size: 26px; font-weight: 800; color: #1e1e2e; }
+    .stat-label { font-size: 11px; color: #9ca3af; margin-top: 4px; font-weight: 500; }
+    .stat-card.pending .stat-num { color: #d97706; }
+    .stat-card.in_review .stat-num { color: #4f46e5; }
+
+    /* Filter */
+    .filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-btn { padding: 7px 16px; border-radius: 20px; border: 1.5px solid #e5e3f5; background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; color: #6b7280; transition: all 0.2s; }
+    .filter-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+
+    /* Cards */
+    .submissions { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; }
+    .submission-card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 2px 12px rgba(80,70,160,0.07); border-left: 4px solid #e5e3f5; }
+    .submission-card.pending { border-left-color: #d97706; }
+    .submission-card.in_review { border-left-color: #4f46e5; }
+    .submission-card.approved { border-left-color: #16a34a; }
+    .submission-card.approved_iklan { border-left-color: #0891b2; }
+    .submission-card.rejected { border-left-color: #dc2626; }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .card-judul { font-size: 15px; font-weight: 700; color: #1e1e2e; }
+    .card-brand { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge.pending { background: #fffbeb; color: #d97706; }
+    .badge.in_review { background: #ede9fe; color: #4f46e5; }
+    .badge.approved { background: #f0fdf4; color: #16a34a; }
+    .badge.approved_iklan { background: #ecfeff; color: #0891b2; }
+    .badge.rejected { background: #fef2f2; color: #dc2626; }
+    .card-meta { display: flex; gap: 14px; font-size: 12px; color: #9ca3af; flex-wrap: wrap; margin-bottom: 12px; }
+    .drive-preview { display: block; background: #f5f4fb; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #4f46e5; text-decoration: none; font-weight: 600; margin-bottom: 12px; }
+    .drive-preview:hover { background: #eceaf8; }
+    .revision-history { background: #f5f4fb; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: #6b7280; }
+    .revision-history .rev-item { padding: 3px 0; border-bottom: 1px solid #e5e3f5; }
+    .revision-history .rev-item:last-child { border-bottom: none; }
+
+    /* Review actions */
+    .review-box { border-top: 1px solid #f5f4fb; padding-top: 14px; margin-top: 4px; }
+    .review-box label { display: block; font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; margin-top: 10px; }
+    .review-box textarea { width: 100%; padding: 10px 13px; border: none; border-radius: 10px; font-size: 13px; color: #1e1e2e; background: #f5f4fb; outline: none; resize: vertical; min-height: 70px; }
+    .review-box textarea:focus { background: #eeecfb; box-shadow: 0 0 0 2px #c7c2f5; }
+    .review-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .btn-review { flex: 1; min-width: 120px; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-review.reject { background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; }
+    .btn-review.reject:hover { background: #fee2e2; }
+    .btn-review.approve { background: #f0fdf4; color: #16a34a; border: 1.5px solid #86efac; }
+    .btn-review.approve:hover { background: #dcfce7; }
+    .btn-review.approve-iklan { background: #ecfeff; color: #0891b2; border: 1.5px solid #a5f3fc; }
+    .btn-review.approve-iklan:hover { background: #cffafe; }
+    .btn-review:disabled { opacity: 0.5; cursor: not-allowed; }
+    .review-done { font-size: 12px; color: #9ca3af; text-align: center; padding: 10px; }
+
+    .empty { text-align: center; padding: 60px; color: #9ca3af; font-size: 14px; }
+    .loading { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="dashboard.html">QA Konten</a>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser"></span>
+      <button class="nav-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h2>Dashboard QA Team</h2>
+    <p class="page-sub">Review konten yang disubmit advertiser.</p>
+
+    <div class="stats">
+      <div class="stat-card pending"><div class="stat-num" id="statPending">-</div><div class="stat-label">Pending</div></div>
+      <div class="stat-card in_review"><div class="stat-num" id="statReview">-</div><div class="stat-label">In Review</div></div>
+      <div class="stat-card"><div class="stat-num" id="statDone">-</div><div class="stat-label">Sudah Direview</div></div>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('pending', this)">Pending</button>
+      <button class="filter-btn" onclick="setFilter('in_review', this)">In Review</button>
+      <button class="filter-btn" onclick="setFilter('all', this)">Semua</button>
+    </div>
+
+    <div class="submissions" id="submissionList">
+      <div class="loading">Memuat data...</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const { supabaseUrl, supabaseAnonKey } = await fetch('/api/config').then(r => r.json());
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    let allData = [];
+    let currentFilter = 'pending';
+    let qaName = '';
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session || data.session.user.user_metadata?.role !== 'qa') {
+        window.location.href = 'login.html'; return;
+      }
+      qaName = data.session.user.user_metadata?.name || data.session.user.email;
+      document.getElementById('navUser').textContent = 'Hi, ' + qaName;
+      await loadData();
+    });
+
+    async function loadData() {
+      const { data } = await supabase
+        .from('content_submissions')
+        .select('*')
+        .order('submitted_at', { ascending: true });
+      allData = data || [];
+      updateStats();
+      renderList();
+    }
+
+    function updateStats() {
+      document.getElementById('statPending').textContent = allData.filter(d => d.status === 'pending').length;
+      document.getElementById('statReview').textContent = allData.filter(d => d.status === 'in_review').length;
+      document.getElementById('statDone').textContent = allData.filter(d => ['approved','approved_iklan','rejected'].includes(d.status)).length;
+    }
+
+    window.setFilter = function(filter, el) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      renderList();
+    };
+
+    function renderList() {
+      let filtered = currentFilter === 'all' ? allData : allData.filter(d => d.status === currentFilter);
+      const container = document.getElementById('submissionList');
+      if (filtered.length === 0) { container.innerHTML = '<div class="empty">Tidak ada data di kategori ini.</div>'; return; }
+      container.innerHTML = filtered.map(d => renderCard(d)).join('');
+    }
+
+    function badgeLabel(s) {
+      const map = { pending: 'Pending', in_review: 'In Review', approved: 'Approved', approved_iklan: 'Bisa Iklan', rejected: 'Rejected' };
+      return map[s] || s;
+    }
+
+    function formatDate(str) {
+      if (!str) return '-';
+      return new Date(str).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getRevisions(d) {
+      // Cari semua revisi dari submission yang sama
+      const rootId = d.revision_of || d.id;
+      return allData.filter(x => x.revision_of === rootId || x.id === rootId).sort((a, b) => a.revision_number - b.revision_number);
+    }
+
+    function renderCard(d) {
+      const revisions = getRevisions(d);
+      const revisionHtml = revisions.length > 1 ? `
+        <div class="revision-history">
+          <strong style="font-size:11px;color:#4f46e5;">Riwayat Revisi</strong>
+          ${revisions.map(r => `
+            <div class="rev-item">
+              Revisi ${r.revision_number} — <a href="${r.drive_link}" target="_blank" style="color:#4f46e5;">Lihat Link</a>
+              <span style="color:#${r.status === 'rejected' ? 'dc2626' : r.status.startsWith('approved') ? '16a34a' : '9ca3af'}"> (${badgeLabel(r.status)})</span>
+            </div>`).join('')}
+        </div>` : '';
+
+      const isDone = ['approved','approved_iklan','rejected'].includes(d.status);
+      const reviewBox = isDone
+        ? `<div class="review-done">✅ Sudah direview oleh ${d.qa_by || '-'} — ${formatDate(d.qa_at)}</div>`
+        : `<div class="review-box">
+            <label>Catatan QA (wajib jika Reject, opsional jika Approved)</label>
+            <textarea id="catatan-${d.id}" placeholder="Tulis catatan atau alasan..."></textarea>
+            <div class="review-actions">
+              <button class="btn-review reject" onclick="submitReview('${d.id}', 'rejected')">✕ Reject</button>
+              <button class="btn-review approve" onclick="submitReview('${d.id}', 'approved')">✓ Approved</button>
+              <button class="btn-review approve-iklan" onclick="submitReview('${d.id}', 'approved_iklan')">🎯 Bisa Iklan</button>
+            </div>
+          </div>`;
+
+      return `
+        <div class="submission-card ${d.status}" id="card-${d.id}">
+          <div class="card-top">
+            <div>
+              <div class="card-judul">${d.judul}</div>
+              <div class="card-brand">${d.brand} · ${d.jenis_konten}</div>
+            </div>
+            <span class="badge ${d.status}">${badgeLabel(d.status)}</span>
+          </div>
+          <div class="card-meta">
+            <span>👤 ${d.advertiser_name}</span>
+            <span>📅 ${formatDate(d.submitted_at)}</span>
+          </div>
+          <a class="drive-preview" href="${d.drive_link}" target="_blank">🔗 Preview Konten di Google Drive →</a>
+          ${revisionHtml}
+          ${reviewBox}
+        </div>`;
+    }
+
+    window.submitReview = async function(id, status) {
+      const catatan = document.getElementById(`catatan-${id}`).value.trim();
+      if (status === 'rejected' && !catatan) {
+        alert('Mohon isi catatan alasan reject.'); return;
+      }
+
+      // Disable semua tombol di card ini
+      const card = document.getElementById(`card-${id}`);
+      card.querySelectorAll('button').forEach(b => b.disabled = true);
+
+      const { error } = await supabase
+        .from('content_submissions')
+        .update({ status, qa_catatan: catatan || null, qa_by: qaName, qa_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) { alert('Gagal menyimpan: ' + error.message); card.querySelectorAll('button').forEach(b => b.disabled = false); return; }
+
+      // Kirim notif WA
+      const item = allData.find(d => d.id === id);
+      if (item?.wa_number) {
+        fetch('/api/send-wa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: item.wa_number, type: 'qa_result', data: {
+            advertiser_name: item.advertiser_name,
+            judul: item.judul,
+            brand: item.brand,
+            status,
+            catatan: catatan || null,
+          }}),
+        }).catch(() => {});
+      }
+
+      await loadData();
+    };
+
+    window.doLogout = async function() {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submit Konten — QA Konten</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #eae8f5; min-height: 100vh; }
+    nav {
+      background: #fff; padding: 14px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 0 #e5e3f5; position: sticky; top: 0; z-index: 10;
+    }
+    .nav-logo { font-size: 18px; font-weight: 800; color: #4f46e5; text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-user { font-size: 14px; color: #374151; font-weight: 500; }
+    .nav-btn { padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; }
+    .nav-btn.outline { border: 1.5px solid #c7c2f5; color: #4f46e5; background: #f5f4fb; }
+    .nav-btn.outline:hover { background: #eceaf8; }
+    .nav-btn.ghost { background: none; color: #9ca3af; font-size: 13px; cursor: pointer; }
+    .nav-btn.ghost:hover { color: #dc2626; }
+    .page { display: flex; align-items: center; justify-content: center; padding: 40px 24px; min-height: calc(100vh - 53px); }
+    .card { background: #fff; border-radius: 24px; padding: 40px; width: 100%; max-width: 520px; box-shadow: 0 8px 40px rgba(80,70,160,0.10); }
+    h1 { font-size: 20px; font-weight: 700; color: #1e1e2e; margin-bottom: 4px; }
+    .sub { font-size: 14px; color: #9ca3af; margin-bottom: 28px; }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 7px; }
+    input, select { width: 100%; padding: 13px 16px; border: none; border-radius: 12px; font-size: 14px; color: #1e1e2e; background: #f5f4fb; outline: none; transition: box-shadow 0.2s; }
+    input:focus, select:focus { background: #eeecfb; box-shadow: 0 0 0 2px #c7c2f5; }
+    input::placeholder { color: #b0adc8; }
+    select { appearance: none; cursor: pointer; }
+    .btn { width: 100%; padding: 14px; background: #4f46e5; color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: background 0.2s; }
+    .btn:hover { background: #4338ca; }
+    .btn:disabled { background: #c4c0f0; cursor: not-allowed; }
+    .error-msg { display: none; color: #dc2626; font-size: 13px; margin-top: 8px; }
+    .success-box { display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 14px; padding: 24px; text-align: center; margin-top: 16px; }
+    .success-box h3 { color: #16a34a; font-size: 16px; margin-bottom: 6px; }
+    .success-box p { color: #166534; font-size: 14px; }
+    .revision-banner { background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #92400e; display: none; }
+    .revision-banner strong { display: block; margin-bottom: 4px; color: #c2410c; }
+    .link-hint { font-size: 11px; color: #9ca3af; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="dashboard.html">QA Konten</a>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser"></span>
+      <a href="dashboard.html" class="nav-btn outline">Dashboard</a>
+      <button class="nav-btn ghost" onclick="doLogout()">Keluar</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="card">
+      <h1 id="pageTitle">Submit Konten</h1>
+      <p class="sub" id="pageSub">Isi form di bawah untuk mengajukan konten ke QA.</p>
+
+      <div class="revision-banner" id="revisionBanner">
+        <strong>Resubmit / Revisi</strong>
+        <span id="revisionInfo"></span>
+      </div>
+
+      <form id="submitForm">
+        <div class="field">
+          <label>Nama Produk / Brand *</label>
+          <input type="text" id="brand" placeholder="Nama produk atau brand" required />
+        </div>
+        <div class="field">
+          <label>Judul Konten *</label>
+          <input type="text" id="judul" placeholder="Judul konten yang disubmit" required />
+        </div>
+        <div class="field">
+          <label>Jenis Konten *</label>
+          <select id="jenis_konten" required>
+            <option value="">-- Pilih jenis konten --</option>
+            <option value="Foto Produk">Foto Produk</option>
+            <option value="Video Produk">Video Produk</option>
+            <option value="Video Iklan">Video Iklan</option>
+            <option value="Desain Konten">Desain Konten</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Link Google Drive *</label>
+          <input type="url" id="drive_link" placeholder="https://drive.google.com/..." required />
+          <p class="link-hint">Pastikan link sudah di-set "Anyone with the link can view"</p>
+        </div>
+        <button type="submit" class="btn" id="submitBtn">Kirim untuk di-QA</button>
+        <p class="error-msg" id="errorMsg"></p>
+      </form>
+
+      <div class="success-box" id="successBox">
+        <h3>Berhasil Dikirim!</h3>
+        <p>Konten kamu sudah masuk ke antrian QA. Kamu akan dapat notif WhatsApp setelah direview.</p>
+        <br />
+        <a href="dashboard.html" style="color:#4f46e5; font-weight:600; font-size:14px;">Pantau status di dashboard →</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const { supabaseUrl, supabaseAnonKey } = await fetch('/api/config').then(r => r.json());
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    let currentUser = null;
+    let revisionOf = null; // ID submission yang diresubmit
+
+    const urlParams = new URLSearchParams(window.location.search);
+    revisionOf = urlParams.get('revisi');
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session || data.session.user.user_metadata?.role !== 'advertiser') {
+        window.location.href = 'login.html'; return;
+      }
+      currentUser = data.session.user;
+      const meta = currentUser.user_metadata;
+      document.getElementById('navUser').textContent = 'Hi, ' + (meta?.name || 'Advertiser');
+
+      // Kalau resubmit, ambil data submission awal
+      if (revisionOf) {
+        const { data: original } = await supabase
+          .from('content_submissions')
+          .select('*')
+          .eq('id', revisionOf)
+          .single();
+        if (original) {
+          document.getElementById('pageTitle').textContent = 'Resubmit Konten';
+          document.getElementById('pageSub').textContent = 'Kirim ulang konten yang telah direvisi.';
+          document.getElementById('revisionBanner').style.display = 'block';
+          document.getElementById('revisionInfo').textContent =
+            `Revisi dari: "${original.judul}" — Catatan QA: ${original.qa_catatan || '-'}`;
+          // Pre-fill brand & jenis
+          document.getElementById('brand').value = original.brand;
+          document.getElementById('jenis_konten').value = original.jenis_konten;
+          document.getElementById('judul').value = original.judul;
+          document.getElementById('submitBtn').textContent = 'Kirim Revisi';
+        }
+      }
+    });
+
+    window.doLogout = async function() {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    };
+
+    document.getElementById('submitForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const errorMsg = document.getElementById('errorMsg');
+      btn.disabled = true; btn.textContent = 'Mengirim...';
+      errorMsg.style.display = 'none';
+
+      const meta = currentUser.user_metadata;
+
+      // Hitung revision_number
+      let revisionNumber = 1;
+      if (revisionOf) {
+        const { data: prevRevisions } = await supabase
+          .from('content_submissions')
+          .select('revision_number')
+          .eq('revision_of', revisionOf)
+          .order('revision_number', { ascending: false })
+          .limit(1);
+        if (prevRevisions && prevRevisions.length > 0) {
+          revisionNumber = prevRevisions[0].revision_number + 1;
+        } else {
+          revisionNumber = 2;
+        }
+      }
+
+      const payload = {
+        advertiser_id: currentUser.id,
+        advertiser_name: meta?.name || '',
+        wa_number: meta?.wa_number || '',
+        brand: document.getElementById('brand').value.trim(),
+        judul: document.getElementById('judul').value.trim(),
+        jenis_konten: document.getElementById('jenis_konten').value,
+        drive_link: document.getElementById('drive_link').value.trim(),
+        status: 'pending',
+        revision_of: revisionOf || null,
+        revision_number: revisionNumber,
+        submitted_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase.from('content_submissions').insert(payload);
+
+      if (error) {
+        errorMsg.textContent = 'Error: ' + error.message;
+        errorMsg.style.display = 'block';
+        btn.disabled = false; btn.textContent = revisionOf ? 'Kirim Revisi' : 'Kirim untuk di-QA';
+      } else {
+        document.getElementById('submitForm').style.display = 'none';
+        document.getElementById('successBox').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

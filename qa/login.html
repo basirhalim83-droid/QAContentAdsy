@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login QA — QA Konten</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #eae8f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card { background: #fff; border-radius: 24px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 8px 40px rgba(80,70,160,0.10); }
+    .logo { font-size: 20px; font-weight: 800; color: #4f46e5; margin-bottom: 4px; }
+    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 28px; }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 7px; }
+    input { width: 100%; padding: 13px 16px; border: none; border-radius: 12px; font-size: 14px; color: #1e1e2e; background: #f5f4fb; outline: none; transition: box-shadow 0.2s; }
+    input:focus { background: #eeecfb; box-shadow: 0 0 0 2px #c7c2f5; }
+    input::placeholder { color: #b0adc8; }
+    .btn { width: 100%; padding: 14px; background: #4f46e5; color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: background 0.2s; }
+    .btn:hover { background: #4338ca; }
+    .btn:disabled { background: #c4c0f0; cursor: not-allowed; }
+    .msg { font-size: 13px; margin-top: 10px; color: #dc2626; text-align: center; }
+    .back { display: block; text-align: center; margin-top: 20px; font-size: 13px; color: #9ca3af; text-decoration: none; }
+    .back:hover { color: #4f46e5; }
+    .role-badge { display: inline-block; background: #ede9fe; color: #4f46e5; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">QA Konten</div>
+    <span class="role-badge">🔍 QA Team</span>
+    <p class="sub">Login dengan akun QA kamu</p>
+    <div class="field"><label>Email</label><input type="email" id="email" placeholder="email@adsy.com" /></div>
+    <div class="field"><label>Password</label><input type="password" id="pass" placeholder="Password" /></div>
+    <button class="btn" id="btnLogin" onclick="doLogin()">Masuk sebagai QA</button>
+    <p class="msg" id="msg"></p>
+    <a class="back" href="../index.html">← Kembali ke beranda</a>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const { supabaseUrl, supabaseAnonKey } = await fetch('/api/config').then(r => r.json());
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session && data.session.user.user_metadata?.role === 'qa') {
+        window.location.href = 'dashboard.html';
+      }
+    });
+
+    window.doLogin = async function() {
+      const btn = document.getElementById('btnLogin');
+      const msg = document.getElementById('msg');
+      btn.disabled = true; btn.textContent = 'Masuk...';
+      msg.textContent = '';
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('pass').value,
+      });
+      if (error || data.user?.user_metadata?.role !== 'qa') {
+        msg.textContent = 'Email/password salah atau bukan akun QA.';
+        btn.disabled = false; btn.textContent = 'Masuk sebagai QA';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    };
+  </script>
+</body>
+</html>

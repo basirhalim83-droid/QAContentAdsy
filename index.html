@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA Konten — Adsy</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eae8f5;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .logo {
+      font-size: 28px; font-weight: 800; color: #4f46e5;
+      margin-bottom: 6px; letter-spacing: -1px;
+    }
+    .tagline { font-size: 15px; color: #9ca3af; margin-bottom: 48px; }
+    .cards {
+      display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+    }
+    .card {
+      background: #fff; border-radius: 20px;
+      padding: 36px 32px; width: 220px; text-align: center;
+      box-shadow: 0 4px 24px rgba(80,70,160,0.10);
+      cursor: pointer; text-decoration: none;
+      transition: transform 0.18s, box-shadow 0.18s;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(80,70,160,0.16); }
+    .icon { font-size: 36px; }
+    .card-title { font-size: 16px; font-weight: 700; color: #1e1e2e; }
+    .card-sub { font-size: 12px; color: #9ca3af; }
+  </style>
+</head>
+<body>
+  <div class="logo">QA Konten</div>
+  <p class="tagline">by Adsy — Quality Assurance Konten Advertiser</p>
+  <div class="cards">
+    <a class="card" href="advertiser/login.html">
+      <div class="icon">📦</div>
+      <div class="card-title">Advertiser</div>
+      <div class="card-sub">Submit & pantau konten</div>
+    </a>
+    <a class="card" href="qa/login.html">
+      <div class="icon">🔍</div>
+      <div class="card-title">QA Team</div>
+      <div class="card-sub">Review & beri keputusan</div>
+    </a>
+    <a class="card" href="spv/login.html">
+      <div class="icon">📊</div>
+      <div class="card-title">SPV</div>
+      <div class="card-sub">Pantau performa advertiser</div>
+    </a>
+  </div>
+</body>
+</html>

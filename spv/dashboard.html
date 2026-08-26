@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard SPV — QA Konten</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #eae8f5; min-height: 100vh; }
+    nav {
+      background: #fff; padding: 14px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 0 #e5e3f5; position: sticky; top: 0; z-index: 10;
+    }
+    .nav-logo { font-size: 18px; font-weight: 800; color: #4f46e5; text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .nav-user { font-size: 14px; color: #374151; font-weight: 500; }
+    .nav-btn { padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: none; color: #9ca3af; transition: all 0.2s; }
+    .nav-btn:hover { color: #dc2626; }
+    .page { padding: 32px 24px; max-width: 1100px; margin: 0 auto; }
+    h2 { font-size: 20px; font-weight: 700; color: #1e1e2e; margin-bottom: 6px; }
+    .page-sub { font-size: 13px; color: #9ca3af; margin-bottom: 24px; }
+
+    /* Top stats */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 32px; }
+    .stat-card { background: #fff; border-radius: 14px; padding: 18px; text-align: center; box-shadow: 0 2px 12px rgba(80,70,160,0.07); }
+    .stat-num { font-size: 28px; font-weight: 800; color: #1e1e2e; }
+    .stat-label { font-size: 11px; color: #9ca3af; margin-top: 4px; font-weight: 500; }
+    .stat-card.approved .stat-num { color: #16a34a; }
+    .stat-card.approved_iklan .stat-num { color: #0891b2; }
+    .stat-card.rejected .stat-num { color: #dc2626; }
+
+    /* Filter */
+    .toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .toolbar select, .toolbar input { padding: 9px 14px; border: none; border-radius: 10px; font-size: 13px; color: #1e1e2e; background: #fff; outline: none; box-shadow: 0 1px 4px rgba(0,0,0,0.05); cursor: pointer; min-width: 160px; }
+    .toolbar label { font-size: 12px; color: #6b7280; font-weight: 600; }
+
+    /* Advertiser cards (performa) */
+    .adv-section { margin-bottom: 36px; }
+    .adv-section-title { font-size: 16px; font-weight: 700; color: #1e1e2e; margin-bottom: 16px; }
+    .adv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+    .adv-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(80,70,160,0.07); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: 2px solid transparent; }
+    .adv-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(80,70,160,0.12); }
+    .adv-card.selected { border-color: #4f46e5; }
+    .adv-name { font-size: 15px; font-weight: 700; color: #1e1e2e; margin-bottom: 12px; }
+    .adv-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .adv-stat { text-align: center; background: #f5f4fb; border-radius: 10px; padding: 10px 6px; }
+    .adv-stat-num { font-size: 20px; font-weight: 800; }
+    .adv-stat-label { font-size: 10px; color: #9ca3af; margin-top: 2px; font-weight: 500; }
+    .adv-stat.total .adv-stat-num { color: #1e1e2e; }
+    .adv-stat.approved .adv-stat-num { color: #16a34a; }
+    .adv-stat.approved_iklan .adv-stat-num { color: #0891b2; }
+    .adv-stat.rejected .adv-stat-num { color: #dc2626; }
+    .adv-stat.pending .adv-stat-num { color: #d97706; }
+    .acc-rate { margin-top: 12px; }
+    .acc-rate-bar { height: 6px; background: #f5f4fb; border-radius: 10px; overflow: hidden; margin-top: 4px; }
+    .acc-rate-fill { height: 100%; background: #4f46e5; border-radius: 10px; transition: width 0.4s; }
+    .acc-rate-label { font-size: 11px; color: #6b7280; font-weight: 600; }
+
+    /* Detail tabel */
+    .detail-section { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(80,70,160,0.07); margin-bottom: 24px; }
+    .detail-title { font-size: 15px; font-weight: 700; color: #1e1e2e; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { text-align: left; font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.06em; text-transform: uppercase; padding: 0 0 10px; border-bottom: 2px solid #f5f4fb; }
+    tbody tr { border-bottom: 1px solid #f5f4fb; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 12px 8px 12px 0; color: #374151; vertical-align: middle; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge.pending { background: #fffbeb; color: #d97706; }
+    .badge.in_review { background: #ede9fe; color: #4f46e5; }
+    .badge.approved { background: #f0fdf4; color: #16a34a; }
+    .badge.approved_iklan { background: #ecfeff; color: #0891b2; }
+    .badge.rejected { background: #fef2f2; color: #dc2626; }
+    .link-drive { color: #4f46e5; font-size: 12px; text-decoration: none; font-weight: 600; }
+    .link-drive:hover { text-decoration: underline; }
+    .rev-tag { background: #ede9fe; color: #6d28d9; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
+
+    .empty { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+    .loading { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+    .hint { font-size: 13px; color: #9ca3af; text-align: center; padding: 20px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="dashboard.html">QA Konten</a>
+    <div class="nav-right">
+      <span class="nav-user" id="navUser"></span>
+      <button class="nav-btn" onclick="doLogout()">Keluar</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h2>Dashboard SPV</h2>
+    <p class="page-sub">Monitor performa semua advertiser dalam proses QA konten.</p>
+
+    <!-- Global stats -->
+    <div class="stats">
+      <div class="stat-card"><div class="stat-num" id="gTotal">-</div><div class="stat-label">Total Submit</div></div>
+      <div class="stat-card approved"><div class="stat-num" id="gApproved">-</div><div class="stat-label">Approved</div></div>
+      <div class="stat-card approved_iklan"><div class="stat-num" id="gIklan">-</div><div class="stat-label">Bisa Iklan</div></div>
+      <div class="stat-card rejected"><div class="stat-num" id="gRejected">-</div><div class="stat-label">Rejected</div></div>
+      <div class="stat-card"><div class="stat-num" id="gPending">-</div><div class="stat-label">Pending/Review</div></div>
+    </div>
+
+    <!-- Filter bulan -->
+    <div class="toolbar">
+      <label>Filter Bulan:</label>
+      <select id="filterBulan" onchange="applyFilter()">
+        <option value="">Semua</option>
+      </select>
+      <label>Advertiser:</label>
+      <input type="text" id="searchAdv" placeholder="Cari nama advertiser..." oninput="applyFilter()" style="min-width:200px;" />
+    </div>
+
+    <!-- Performa per advertiser -->
+    <div class="adv-section">
+      <div class="adv-section-title">Performa Advertiser</div>
+      <div class="adv-grid" id="advGrid">
+        <div class="loading">Memuat data...</div>
+      </div>
+    </div>
+
+    <!-- Detail tabel -->
+    <div class="detail-section" id="detailSection" style="display:none">
+      <div class="detail-title" id="detailTitle">Detail Submission</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Judul</th>
+            <th>Brand</th>
+            <th>Jenis</th>
+            <th>Status</th>
+            <th>Tanggal</th>
+            <th>Catatan QA</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody id="detailBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const { supabaseUrl, supabaseAnonKey } = await fetch('/api/config').then(r => r.json());
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    let allData = [];
+    let filteredData = [];
+    let selectedAdv = null;
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session || data.session.user.user_metadata?.role !== 'spv') {
+        window.location.href = 'login.html'; return;
+      }
+      document.getElementById('navUser').textContent = 'Hi, ' + (data.session.user.user_metadata?.name || 'SPV');
+      await loadData();
+    });
+
+    async function loadData() {
+      const { data } = await supabase
+        .from('content_submissions')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+      allData = data || [];
+      populateBulanFilter();
+      applyFilter();
+    }
+
+    function populateBulanFilter() {
+      const months = [...new Set(allData.map(d => d.submitted_at?.slice(0, 7)))].filter(Boolean).sort().reverse();
+      const sel = document.getElementById('filterBulan');
+      months.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        const [y, mo] = m.split('-');
+        opt.textContent = new Date(y, mo - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        sel.appendChild(opt);
+      });
+    }
+
+    window.applyFilter = function() {
+      const bulan = document.getElementById('filterBulan').value;
+      const search = document.getElementById('searchAdv').value.toLowerCase();
+      filteredData = allData.filter(d => {
+        const matchBulan = bulan ? d.submitted_at?.startsWith(bulan) : true;
+        const matchSearch = search ? d.advertiser_name?.toLowerCase().includes(search) : true;
+        return matchBulan && matchSearch;
+      });
+      updateGlobalStats();
+      renderAdvGrid();
+      if (selectedAdv) renderDetail(selectedAdv);
+    };
+
+    function updateGlobalStats() {
+      document.getElementById('gTotal').textContent = filteredData.length;
+      document.getElementById('gApproved').textContent = filteredData.filter(d => d.status === 'approved').length;
+      document.getElementById('gIklan').textContent = filteredData.filter(d => d.status === 'approved_iklan').length;
+      document.getElementById('gRejected').textContent = filteredData.filter(d => d.status === 'rejected').length;
+      document.getElementById('gPending').textContent = filteredData.filter(d => ['pending','in_review'].includes(d.status)).length;
+    }
+
+    function renderAdvGrid() {
+      const byAdv = {};
+      filteredData.forEach(d => {
+        if (!byAdv[d.advertiser_name]) byAdv[d.advertiser_name] = [];
+        byAdv[d.advertiser_name].push(d);
+      });
+
+      const grid = document.getElementById('advGrid');
+      const advs = Object.entries(byAdv).sort((a, b) => b[1].length - a[1].length);
+      if (advs.length === 0) { grid.innerHTML = '<div class="empty">Tidak ada data advertiser.</div>'; return; }
+
+      grid.innerHTML = advs.map(([name, items]) => {
+        const total = items.length;
+        const approved = items.filter(d => d.status === 'approved').length;
+        const iklan = items.filter(d => d.status === 'approved_iklan').length;
+        const rejected = items.filter(d => d.status === 'rejected').length;
+        const pending = items.filter(d => ['pending','in_review'].includes(d.status)).length;
+        const accRate = total > 0 ? Math.round((approved + iklan) / total * 100) : 0;
+        const isSelected = selectedAdv === name;
+
+        return `
+          <div class="adv-card ${isSelected ? 'selected' : ''}" onclick="selectAdv('${name}')">
+            <div class="adv-name">👤 ${name}</div>
+            <div class="adv-stats">
+              <div class="adv-stat total"><div class="adv-stat-num">${total}</div><div class="adv-stat-label">Total</div></div>
+              <div class="adv-stat approved"><div class="adv-stat-num">${approved}</div><div class="adv-stat-label">Approved</div></div>
+              <div class="adv-stat approved_iklan"><div class="adv-stat-num">${iklan}</div><div class="adv-stat-label">Bisa Iklan</div></div>
+              <div class="adv-stat rejected"><div class="adv-stat-num">${rejected}</div><div class="adv-stat-label">Rejected</div></div>
+              <div class="adv-stat pending"><div class="adv-stat-num">${pending}</div><div class="adv-stat-label">Pending</div></div>
+              <div class="adv-stat total"><div class="adv-stat-num">${accRate}%</div><div class="adv-stat-label">Acc Rate</div></div>
+            </div>
+            <div class="acc-rate">
+              <div class="acc-rate-label">Acc Rate</div>
+              <div class="acc-rate-bar"><div class="acc-rate-fill" style="width:${accRate}%"></div></div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    window.selectAdv = function(name) {
+      selectedAdv = selectedAdv === name ? null : name;
+      renderAdvGrid();
+      if (selectedAdv) renderDetail(selectedAdv);
+      else document.getElementById('detailSection').style.display = 'none';
+    };
+
+    function renderDetail(name) {
+      const items = filteredData.filter(d => d.advertiser_name === name).sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+      const section = document.getElementById('detailSection');
+      const title = document.getElementById('detailTitle');
+      const body = document.getElementById('detailBody');
+      section.style.display = 'block';
+      title.textContent = `Detail Submission — ${name} (${items.length} konten)`;
+      section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      function badgeLabel(s) {
+        const map = { pending: 'Pending', in_review: 'In Review', approved: 'Approved', approved_iklan: 'Bisa Iklan', rejected: 'Rejected' };
+        return map[s] || s;
+      }
+      function formatDate(str) {
+        if (!str) return '-';
+        return new Date(str).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+
+      body.innerHTML = items.map(d => `
+        <tr>
+          <td>${d.judul}${d.revision_of ? '<span class="rev-tag">Revisi ' + d.revision_number + '</span>' : ''}</td>
+          <td>${d.brand}</td>
+          <td>${d.jenis_konten}</td>
+          <td><span class="badge ${d.status}">${badgeLabel(d.status)}</span></td>
+          <td>${formatDate(d.submitted_at)}</td>
+          <td style="max-width:180px;color:#6b7280">${d.qa_catatan || '-'}</td>
+          <td><a class="link-drive" href="${d.drive_link}" target="_blank">Lihat →</a></td>
+        </tr>`).join('');
+    }
+
+    window.doLogout = async function() {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Advertiser — QA Konten</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #eae8f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card { background: #fff; border-radius: 24px; padding: 40px; width: 100%; max-width: 420px; box-shadow: 0 8px 40px rgba(80,70,160,0.10); }
+    .logo { font-size: 20px; font-weight: 800; color: #4f46e5; margin-bottom: 4px; }
+    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 28px; }
+    .tabs { display: flex; gap: 0; margin-bottom: 28px; background: #f5f4fb; border-radius: 12px; padding: 4px; }
+    .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: #9ca3af; transition: all 0.2s; border: none; background: none; }
+    .tab.active { background: #fff; color: #4f46e5; box-shadow: 0 2px 8px rgba(80,70,160,0.10); }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 7px; }
+    input { width: 100%; padding: 13px 16px; border: none; border-radius: 12px; font-size: 14px; color: #1e1e2e; background: #f5f4fb; outline: none; transition: box-shadow 0.2s; }
+    input:focus { background: #eeecfb; box-shadow: 0 0 0 2px #c7c2f5; }
+    input::placeholder { color: #b0adc8; }
+    .btn { width: 100%; padding: 14px; background: #4f46e5; color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: background 0.2s; }
+    .btn:hover { background: #4338ca; }
+    .btn:disabled { background: #c4c0f0; cursor: not-allowed; }
+    .msg { font-size: 13px; margin-top: 10px; text-align: center; }
+    .msg.error { color: #dc2626; }
+    .msg.success { color: #16a34a; }
+    .back { display: block; text-align: center; margin-top: 20px; font-size: 13px; color: #9ca3af; text-decoration: none; }
+    .back:hover { color: #4f46e5; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">QA Konten</div>
+    <p class="sub">Advertiser — Login atau daftar akun baru</p>
+
+    <div class="tabs">
+      <button class="tab active" id="tabLogin" onclick="switchTab('login')">Login</button>
+      <button class="tab" id="tabRegister" onclick="switchTab('register')">Daftar</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="formLogin">
+      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="email@kamu.com" /></div>
+      <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Password" /></div>
+      <button class="btn" id="btnLogin" onclick="doLogin()">Masuk</button>
+      <p class="msg error" id="loginMsg"></p>
+    </div>
+
+    <!-- Register Form -->
+    <div id="formRegister" style="display:none">
+      <div class="field"><label>Nama Lengkap</label><input type="text" id="regName" placeholder="Nama kamu" /></div>
+      <div class="field"><label>No. WhatsApp</label><input type="tel" id="regWa" placeholder="08xxxxxxxxxx" /></div>
+      <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="email@kamu.com" /></div>
+      <div class="field"><label>Password</label><input type="password" id="regPass" placeholder="Min. 6 karakter" /></div>
+      <button class="btn" id="btnRegister" onclick="doRegister()">Daftar</button>
+      <p class="msg" id="registerMsg"></p>
+    </div>
+
+    <a class="back" href="../index.html">← Kembali ke beranda</a>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const { supabaseUrl, supabaseAnonKey } = await fetch('/api/config').then(r => r.json());
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // Cek kalau sudah login
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session && data.session.user.user_metadata?.role === 'advertiser') {
+        window.location.href = 'dashboard.html';
+      }
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tab') === 'register') switchTab('register');
+
+    window.switchTab = function(tab) {
+      document.getElementById('formLogin').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('formRegister').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+      document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+    };
+
+    window.doLogin = async function() {
+      const btn = document.getElementById('btnLogin');
+      const msg = document.getElementById('loginMsg');
+      btn.disabled = true; btn.textContent = 'Masuk...';
+      msg.textContent = '';
+      const { error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById('loginEmail').value.trim(),
+        password: document.getElementById('loginPass').value,
+      });
+      if (error) {
+        msg.textContent = 'Email atau password salah.';
+        btn.disabled = false; btn.textContent = 'Masuk';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    };
+
+    window.doRegister = async function() {
+      const btn = document.getElementById('btnRegister');
+      const msg = document.getElementById('registerMsg');
+      btn.disabled = true; btn.textContent = 'Mendaftar...';
+      msg.textContent = ''; msg.className = 'msg';
+      const name = document.getElementById('regName').value.trim();
+      const wa = document.getElementById('regWa').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPass').value;
+      if (!name || !wa || !email || !pass) {
+        msg.textContent = 'Semua field wajib diisi.'; msg.classList.add('error');
+        btn.disabled = false; btn.textContent = 'Daftar'; return;
+      }
+      const { error } = await supabase.auth.signUp({
+        email, password: pass,
+        options: { data: { name, wa_number: wa, role: 'advertiser' } }
+      });
+      if (error) {
+        msg.textContent = error.message; msg.classList.add('error');
+        btn.disabled = false; btn.textContent = 'Daftar';
+      } else {
+        msg.textContent = 'Akun berhasil dibuat! Silakan login.'; msg.classList.add('success');
+        setTimeout(() => switchTab('login'), 1500);
+        btn.disabled = false; btn.textContent = 'Daftar';
+      }
+    };
+  </script>
+</body>
+</html>
