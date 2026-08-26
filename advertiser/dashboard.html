@@ -137,14 +137,14 @@
       <button class="filter-btn" onclick="setFilter('pending', this)">Pending</button>
       <button class="filter-btn" onclick="setFilter('approved', this)">Approved</button>
       <button class="filter-btn" onclick="setFilter('rejected', this)">Rejected</button>
-      <select class="filter-select" id="filterJenis" onchange="renderList()">
+      <select class="filter-select" id="filterJenis" onchange="window.renderList()">
         <option value="">Semua Jenis</option>
         <option value="Foto Produk">Foto Produk</option>
         <option value="Video Produk">Video Produk</option>
         <option value="Video Iklan">Video Iklan</option>
         <option value="Desain Konten">Desain Konten</option>
       </select>
-      <select class="filter-select" id="filterProduk" onchange="renderList()">
+      <select class="filter-select" id="filterProduk" onchange="window.renderList()">
         <option value="">Semua Produk</option>
       </select>
     </div>
@@ -242,7 +242,7 @@
       renderList();
     };
 
-    function renderList() {
+    window.renderList = function renderList() {
       const filterJenis = document.getElementById('filterJenis').value;
       const filterProduk = document.getElementById('filterProduk').value;
       let filtered = currentFilter === 'all' ? allData : allData.filter(d => d.status === currentFilter);
