@@ -148,6 +148,9 @@
       <select id="filterProduk" onchange="window.applyFilter()" style="padding:7px 14px;border-radius:20px;border:1.5px solid #e5e3f5;background:#fff;font-size:12px;font-weight:600;color:#6b7280;outline:none;cursor:pointer;font-family:inherit;">
         <option value="">Semua Produk</option>
       </select>
+      <select id="filterAdv" onchange="window.applyFilter()" style="padding:7px 14px;border-radius:20px;border:1.5px solid #e5e3f5;background:#fff;font-size:12px;font-weight:600;color:#6b7280;outline:none;cursor:pointer;font-family:inherit;">
+        <option value="">Semua Advertiser</option>
+      </select>
     </div>
 
     <div class="submissions" id="submissionList">
@@ -202,6 +205,7 @@
       updateStats();
       populateBulanFilter();
       populateProdukFilter();
+      populateAdvFilter();
       renderList();
     }
 
@@ -221,6 +225,13 @@
       const sel = document.getElementById('filterProduk');
       sel.innerHTML = '<option value="">Semua Produk</option>';
       produk.forEach(p => { sel.innerHTML += `<option value="${p}">${p}</option>`; });
+    }
+
+    function populateAdvFilter() {
+      const advs = [...new Set(allData.map(d => d.advertiser_name).filter(Boolean))].sort();
+      const sel = document.getElementById('filterAdv');
+      sel.innerHTML = '<option value="">Semua Advertiser</option>';
+      advs.forEach(a => { sel.innerHTML += `<option value="${a}">${a}</option>`; });
     }
 
     window.applyFilter = function() { renderList(); };
@@ -275,9 +286,11 @@
     function renderList() {
       const bulan = document.getElementById('filterBulan').value;
       const produk = document.getElementById('filterProduk').value;
+      const adv = document.getElementById('filterAdv').value;
       let filtered = currentFilter === 'all' ? allData : allData.filter(d => d.status === currentFilter);
       if (bulan) filtered = filtered.filter(d => d.submitted_at?.startsWith(bulan));
       if (produk) filtered = filtered.filter(d => d.brand === produk);
+      if (adv) filtered = filtered.filter(d => d.advertiser_name === adv);
 
       const total = filtered.length;
       const totalPages = Math.ceil(total / PER_PAGE);
