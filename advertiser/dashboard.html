@@ -223,6 +223,9 @@
       if (error) { document.getElementById('submissionList').innerHTML = '<div class="empty">Gagal memuat data.</div>'; return; }
 
       allData = data || [];
+      // Sembunyikan submission yang sudah di-revisi (cuma tampilkan versi terbaru)
+      const revisedIds = new Set(allData.map(d => d.revision_of).filter(Boolean));
+      allData = allData.filter(d => !revisedIds.has(d.id));
       updateStats();
       renderNotif();
       loadProdukFilter();
